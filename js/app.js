@@ -438,10 +438,20 @@ createApp({
 
   watch: {
     tier(newTier, oldTier) {
-      if (newTier !== oldTier && this.allAnswered) this.autoSelectBundles()
+      if (newTier !== oldTier && this.allAnswered) {
+        this.serviceInstances = {}
+        this.expandedBundles  = {}
+        this.autoSelectBundles()
+      }
     },
     allAnswered(newVal) {
       if (newVal) this.autoSelectBundles()
+    },
+    answers: {
+      deep: true,
+      handler() {
+        if (this.allAnswered) this.autoSelectBundles()
+      },
     },
   },
 
