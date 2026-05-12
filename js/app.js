@@ -126,10 +126,13 @@ createApp({
 
     async refreshPricing() {
       this.pricingLoading = true
-      const result = await fetchAzurePrices()
-      this.pricingSource = result.pricingSource
-      this.pricingLastUpdated = result.pricingLastUpdated
-      this.pricingLoading = false
+      try {
+        const result = await fetchAzurePrices()
+        this.pricingSource = result.pricingSource
+        this.pricingLastUpdated = result.pricingLastUpdated
+      } finally {
+        this.pricingLoading = false
+      }
     },
 
     copyResult() {
@@ -146,6 +149,7 @@ createApp({
 
     generateResultText() {
       const c = this.costs
+      if (!c && this.tier !== 'XL') return '（計算錯誤，請重新選擇問卷選項）'
       const now = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })
       const sourceLabel = this.pricingSource === 'api'
         ? `Azure Retail Pricing API（${this.pricingLastUpdated} 更新）`
@@ -178,7 +182,7 @@ createApp({
         const choice = this.answers[q.id]
         if (choice !== null) {
           const opt = q.options.find(o => o.key === choice)
-          const pts = this.weights[q.id][choice]
+          const pts = this.weights?.[q.id]?.[choice] ?? '?'
           lines.push(`${q.title}：${opt ? opt.label : choice}（+${pts} 分）`)
         }
       }
