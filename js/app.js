@@ -82,8 +82,10 @@ createApp({
         maintMonthLow: null,       maintMonthHigh: null,
         monthlyCostLow: null,      monthlyCostHigh: null,
       },
-      showAdvanced: false,
+      showAdvanced: true,
       showWeights: false,
+      pricingData: {},
+      instanceOverrides: {},
       pricingSource: 'snapshot',
       pricingLastUpdated: null,
       pricingLoading: false,
@@ -113,6 +115,50 @@ createApp({
       if (!c) return 0
       return Math.round(c * 100)
     },
+    cloudBufferPct() {
+      return { S: 10, M: 15, L: 20, XL: 25 }[this.tier] || 0
+    },
+    cloudBreakdown() {
+      if (!this.allAnswered || this.tier === 'XL') return null
+      const template = CLOUD_TEMPLATES[this.tier]
+      if (!template) return null
+      const items = template.items.map(item => {
+        const effectiveInstances = (item.adjustable ? (this.instanceOverrides[item.id] ?? item.instances) : item.instances)
+        let monthlyNTD = 0
+        if (item.sku) {
+          monthlyNTD = (this.pricingData[item.sku] || 0) * effectiveInstances
+        } else if (item.monthlyNTD !== undefined) {
+          monthlyNTD = item.monthlyNTD * effectiveInstances
+        }
+        const yearWan = monthlyNTD * 12 / 10000
+        return { ...item, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10 }
+      })
+      const subtotalWan = items.reduce((s, i) => s + i.yearWan, 0)
+      const totalWan = subtotalWan * (1 + template.buffer)
+      return { items, subtotalWan: Math.round(subtotalWan * 10) / 10, buffer: template.buffer, totalWan: Math.round(totalWan * 10) / 10 }
+    },
+    effectiveBuild() {
+      const t = this.tierDefaults
+      const o = this.overrides
+      return {
+        pmLow:   o.buildPersonMonthLow  ?? t.buildPersonMonthLow,
+        pmHigh:  o.buildPersonMonthHigh ?? t.buildPersonMonthHigh,
+        durLow:  o.durationLow  ?? t.durationLow,
+        durHigh: o.durationHigh ?? t.durationHigh,
+        salLow:  o.monthlyCostLow  ?? 25,
+        salHigh: o.monthlyCostHigh ?? 35,
+      }
+    },
+    effectiveMaint() {
+      const t = this.tierDefaults
+      const o = this.overrides
+      return {
+        pmLow:   o.maintMonthLow  ?? t.maintMonthLow,
+        pmHigh:  o.maintMonthHigh ?? t.maintMonthHigh,
+        salLow:  o.monthlyCostLow  ?? 25,
+        salHigh: o.monthlyCostHigh ?? 35,
+      }
+    },
   },
 
   methods: {
@@ -124,12 +170,26 @@ createApp({
       this.weights = JSON.parse(JSON.stringify(WEIGHTS))
     },
 
+    adjustInstance(itemId, delta) {
+      const template = CLOUD_TEMPLATES[this.tier]
+      if (!template) return
+      const item = template.items.find(i => i.id === itemId)
+      if (!item || !item.adjustable) return
+      const current = this.instanceOverrides[itemId] ?? item.instances
+      const next = Math.min(item.max, Math.max(item.min, current + delta))
+      this.instanceOverrides = { ...this.instanceOverrides, [itemId]: next }
+    },
+    resetInstanceOverrides() {
+      this.instanceOverrides = {}
+    },
+
     async refreshPricing() {
       this.pricingLoading = true
       try {
         const result = await fetchAzurePrices()
         this.pricingSource = result.pricingSource
         this.pricingLastUpdated = result.pricingLastUpdated
+        this.pricingData = result.pricingData
       } finally {
         this.pricingLoading = false
       }
@@ -211,5 +271,6 @@ createApp({
     const status = getPricingStatus()
     this.pricingSource = status.pricingSource
     this.pricingLastUpdated = status.pricingLastUpdated
+    this.pricingData = status.pricingData
   },
 }).mount('#app')

@@ -64,24 +64,60 @@
           <!-- 費用明細 -->
           <div v-else class="cost-section">
             <div class="cost-row">
-              <span>建置費</span>
-              <span>{{ fmt(costs.buildLow) }}–{{ fmt(costs.buildHigh) }} 萬</span>
+              <div class="cost-row-top">
+                <span>建置費</span>
+                <span>{{ fmt(costs.buildLow) }}–{{ fmt(costs.buildHigh) }} 萬</span>
+              </div>
+              <div class="cost-detail">{{ effectiveBuild.pmLow }}–{{ effectiveBuild.pmHigh }} 人月 × {{ effectiveBuild.durLow }}–{{ effectiveBuild.durHigh }} 月 × {{ effectiveBuild.salLow }}–{{ effectiveBuild.salHigh }} 萬/人月</div>
+            </div>
+            <div class="cost-row cloud-row">
+              <div class="cost-row-top">
+                <span>雲端年費（含 {{ cloudBufferPct }}% 緩衝）</span>
+                <span>{{ costs.cloudLow }}–{{ costs.cloudHigh }} 萬</span>
+              </div>
+              <div v-if="cloudBreakdown" class="cloud-breakdown">
+                <div v-for="item in cloudBreakdown.items" :key="item.id" class="cloud-item">
+                  <span class="cloud-layer-badge">L{{ item.layer }}</span>
+                  <span class="cloud-name">{{ item.label }}</span>
+                  <div v-if="item.adjustable" class="cloud-adj">
+                    <button class="adj-btn" @click="adjustInstance(item.id, -1)" :disabled="(instanceOverrides[item.id] ?? item.instances) <= item.min">−</button>
+                    <span class="adj-count">{{ instanceOverrides[item.id] ?? item.instances }} 台</span>
+                    <button class="adj-btn" @click="adjustInstance(item.id, 1)" :disabled="(instanceOverrides[item.id] ?? item.instances) >= item.max">+</button>
+                  </div>
+                  <span v-else-if="item.sku" class="cloud-count-fixed">× {{ item.instances }} 台</span>
+                  <span class="cloud-cost">{{ item.yearWan.toFixed(1) }} 萬/年</span>
+                </div>
+                <div class="cloud-subtotal-row">
+                  <span>小計（不含緩衝）</span>
+                  <span>{{ cloudBreakdown.subtotalWan.toFixed(1) }} 萬</span>
+                </div>
+                <div class="cloud-subtotal-row cloud-total-calc">
+                  <span>+ {{ cloudBufferPct }}% 緩衝 → 調整後估算</span>
+                  <span>{{ cloudBreakdown.totalWan.toFixed(1) }} 萬</span>
+                </div>
+                <div class="cloud-reset" v-if="Object.keys(instanceOverrides).length > 0">
+                  <button @click="resetInstanceOverrides" class="btn-text-link">還原實例預設值</button>
+                </div>
+              </div>
             </div>
             <div class="cost-row">
-              <span>雲端年費</span>
-              <span>{{ costs.cloudLow }}–{{ costs.cloudHigh }} 萬</span>
-            </div>
-            <div class="cost-row">
-              <span>維運費</span>
-              <span>{{ fmt(costs.maintLow) }}–{{ fmt(costs.maintHigh) }} 萬/年</span>
+              <div class="cost-row-top">
+                <span>維運費</span>
+                <span>{{ fmt(costs.maintLow) }}–{{ fmt(costs.maintHigh) }} 萬/年</span>
+              </div>
+              <div class="cost-detail">{{ effectiveMaint.pmLow }}–{{ effectiveMaint.pmHigh }} 人月 × 12 月 × {{ effectiveMaint.salLow }}–{{ effectiveMaint.salHigh }} 萬/人月</div>
             </div>
             <div class="cost-row" v-if="tier !== 'S'">
-              <span>預備金（{{ contingencyPct }}%）</span>
-              <span>≈ {{ fmt(costs.reserve) }} 萬</span>
+              <div class="cost-row-top">
+                <span>預備金（{{ contingencyPct }}%）</span>
+                <span>≈ {{ fmt(costs.reserve) }} 萬</span>
+              </div>
             </div>
             <div class="cost-row cost-total">
-              <span>一年期總費</span>
-              <span>{{ fmt(costs.totalLow) }}–{{ fmt(costs.totalHigh) }} 萬</span>
+              <div class="cost-row-top">
+                <span>一年期總費</span>
+                <span>{{ fmt(costs.totalLow) }}–{{ fmt(costs.totalHigh) }} 萬</span>
+              </div>
             </div>
           </div>
 

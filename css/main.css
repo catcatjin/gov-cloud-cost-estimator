@@ -140,7 +140,7 @@ main.main-layout, .main-layout {
 }
 .cost-row {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   padding: 6px 0;
   border-bottom: 1px solid #f0f0f0;
   font-size: 13px;
@@ -246,6 +246,115 @@ main.main-layout, .main-layout {
   color: #4a5568;
 }
 .btn-reset:hover { background: #fff5f5; color: #e53e3e; border-color: #fed7d7; }
+
+/* ===== 費用行（支援細項子行）===== */
+.cost-row-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.cost-detail {
+  font-size: 11px;
+  color: #4a5568;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+/* ===== 雲端費率明細 ===== */
+.cloud-breakdown {
+  margin-top: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 12px;
+}
+.cloud-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafbfc;
+}
+.cloud-item:nth-child(even) { background: #fff; }
+.cloud-layer-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: #718096;
+  border-radius: 3px;
+  padding: 1px 4px;
+  flex-shrink: 0;
+}
+.cloud-name {
+  flex: 1;
+  color: #2d3748;
+}
+.cloud-adj {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.adj-btn {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.adj-btn:hover:not(:disabled) { background: #ebf8ff; border-color: #4299e1; }
+.adj-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.adj-count {
+  min-width: 36px;
+  text-align: center;
+  font-weight: 600;
+  color: #2b6cb0;
+}
+.cloud-count-fixed {
+  color: #718096;
+  font-size: 11px;
+}
+.cloud-cost {
+  font-weight: 600;
+  color: #2d3748;
+  min-width: 60px;
+  text-align: right;
+}
+.cloud-subtotal-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: #edf2f7;
+  border-top: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #4a5568;
+}
+.cloud-total-calc {
+  background: #e6f0ff;
+  color: #2b6cb0;
+  font-weight: 600;
+}
+.cloud-reset {
+  padding: 4px 8px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafbfc;
+}
+.btn-text-link {
+  background: none;
+  border: none;
+  color: #e53e3e;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
 
 /* ===== 響應式：小螢幕改單欄 ===== */
 @media (max-width: 768px) {
