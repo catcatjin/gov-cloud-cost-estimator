@@ -156,7 +156,7 @@ createApp({
             const unitPrice  = this.pricingData[item.sku] || 0.16
             monthlyNTD       = q * item.tokensPerQuery / 1000 * unitPrice
             const srcLabel   = this.pricingSource === 'api' ? 'Azure API' : '快照'
-            pricingNote      = `NTD ${unitPrice.toFixed(3)}/1K tokens（${srcLabel} ${this.pricingLastUpdated}）`
+            pricingNote      = `NTD ${unitPrice.toFixed(3)}/1K tokens（${srcLabel} ${this.pricingLastUpdated ?? ''}）`
           } else if (item.sku) {
             monthlyNTD = (this.pricingData[item.sku] || 0) * effectiveInstances
           } else if (item.monthlyNTD !== undefined) {
@@ -207,7 +207,7 @@ createApp({
     },
 
     formatQueries(n) {
-      if (!n || n === 0) return '0'
+      if (!n) return '0'
       if (n >= 10000000) return (n / 10000000).toFixed(1) + '千萬'
       if (n >= 1000000)  return (n / 1000000).toFixed(1) + '百萬'
       if (n >= 10000)    return (n / 10000).toFixed(1) + '萬'
@@ -215,11 +215,15 @@ createApp({
     },
 
     adjustRole(field, delta) {
+      const ROLE_CONFIG = {
+        pmCount:   { defKey: 'pm',   max: 3 },
+        archCount: { defKey: 'arch', max: 2 },
+      }
+      const cfg = ROLE_CONFIG[field]
+      if (!cfg) return
       const r       = this.tierDefaults.roles || {}
-      const defVal  = field === 'pmCount' ? (r.pm ?? 0) : (r.arch ?? 0)
-      const maxVal  = field === 'pmCount' ? 3 : 2
-      const current = this.overrides[field] ?? defVal
-      this.overrides[field] = Math.min(maxVal, Math.max(0, current + delta))
+      const current = this.overrides[field] ?? (r[cfg.defKey] ?? 0)
+      this.overrides[field] = Math.min(cfg.max, Math.max(0, current + delta))
     },
 
     resetWeights() {
