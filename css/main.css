@@ -361,3 +361,20 @@ main.main-layout, .main-layout {
   .main-layout { flex-direction: column; height: auto; }
   .panel-left  { flex: none; border-right: none; border-bottom: 1px solid #e2e8f0; }
 }
+
+/* Layer 1（AI 層）badge 紫色 */
+.cloud-layer-badge.layer-1 { background: #faf5ff; color: #805ad5; }
+
+/* AI 定價來源備注（ai-token 項目下方小字） */
+.cloud-pricing-note {
+  font-size: 10px;
+  color: #718096;
+  padding: 0 8px 4px 32px;
+}
+
+/* 進階微調提示文字 */
+.tweak-hint {
+  font-size: 11px;
+  color: #718096;
+  white-space: nowrap;
+}
