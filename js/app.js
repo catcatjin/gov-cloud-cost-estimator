@@ -1,5 +1,5 @@
 // Vue 3 Options API
-// 依賴全域變數：WEIGHTS、TIER_DEFAULTS、DEFAULT_MONTHLY_COST（config.js）
+// 依賴全域變數：WEIGHTS、TIER_DEFAULTS、CLOUD_TEMPLATES、AI_QUERY_MAP_Q1、AI_QUERY_MAP_Q2（config.js）
 //              calcScore、calcTier、calcCosts（calculator.js）
 //              loadPricing、fetchAzurePrices、getPricingStatus（pricing.js）
 
@@ -77,10 +77,22 @@ createApp({
       answers: { q1: null, q2: null, q3: null, q4: null, q5: null, q6: null, q7: null },
       weights: JSON.parse(JSON.stringify(WEIGHTS)), // 可變副本，供使用者調整
       overrides: {
-        buildPersonMonthLow: null, buildPersonMonthHigh: null,
-        durationLow: null,         durationHigh: null,
-        maintMonthLow: null,       maintMonthHigh: null,
-        monthlyCostLow: null,      monthlyCostHigh: null,
+        // 建置角色人數
+        pmCount:       null,
+        archCount:     null,
+        engCountLow:   null,
+        engCountHigh:  null,
+        // 薪資（萬/人月）
+        pmArchSal:     null,
+        engSal:        null,
+        // 期程（月）
+        durationLow:   null,
+        durationHigh:  null,
+        // 維運人月/月
+        maintMonthLow:  null,
+        maintMonthHigh: null,
+        // AI 月查詢量（次/月）
+        aiMonthlyQueries: null,
       },
       showAdvanced: true,
       showWeights: false,
@@ -94,6 +106,14 @@ createApp({
   },
 
   computed: {
+    derivedAiMonthlyQueries() {
+      const q1 = AI_QUERY_MAP_Q1[this.answers.q1] || 0
+      const q2 = AI_QUERY_MAP_Q2[this.answers.q2] || 0
+      return Math.max(q1, q2)
+    },
+    effectiveAiMonthlyQueries() {
+      return this.overrides.aiMonthlyQueries ?? this.derivedAiMonthlyQueries
+    },
     score() {
       return calcScore(this.answers, this.weights)
     },
@@ -122,41 +142,61 @@ createApp({
       if (!this.allAnswered || this.tier === 'XL') return null
       const template = CLOUD_TEMPLATES[this.tier]
       if (!template) return null
-      const items = template.items.map(item => {
-        const effectiveInstances = (item.adjustable ? (this.instanceOverrides[item.id] ?? item.instances) : item.instances)
-        let monthlyNTD = 0
-        if (item.sku) {
-          monthlyNTD = (this.pricingData[item.sku] || 0) * effectiveInstances
-        } else if (item.monthlyNTD !== undefined) {
-          monthlyNTD = item.monthlyNTD * effectiveInstances
-        }
-        const yearWan = monthlyNTD * 12 / 10000
-        return { ...item, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10 }
-      })
+      const hasAI = this.answers.q7 === 'b'
+      const items = template.items
+        .filter(item => !item.aiOptional || hasAI)
+        .map(item => {
+          const effectiveInstances = item.adjustable
+            ? (this.instanceOverrides[item.id] ?? item.instances)
+            : (item.instances ?? 1)
+          let monthlyNTD = 0
+          let pricingNote = null
+          if (item.type === 'ai-token') {
+            const q          = this.effectiveAiMonthlyQueries
+            const unitPrice  = this.pricingData[item.sku] || 0.16
+            monthlyNTD       = q * item.tokensPerQuery / 1000 * unitPrice
+            const srcLabel   = this.pricingSource === 'api' ? 'Azure API' : '快照'
+            pricingNote      = `NTD ${unitPrice.toFixed(3)}/1K tokens（${srcLabel} ${this.pricingLastUpdated}）`
+          } else if (item.sku) {
+            monthlyNTD = (this.pricingData[item.sku] || 0) * effectiveInstances
+          } else if (item.monthlyNTD !== undefined) {
+            monthlyNTD = item.monthlyNTD * effectiveInstances
+          }
+          const yearWan = monthlyNTD * 12 / 10000
+          return { ...item, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10, pricingNote }
+        })
       const subtotalWan = items.reduce((s, i) => s + i.yearWan, 0)
-      const totalWan = subtotalWan * (1 + template.buffer)
-      return { items, subtotalWan: Math.round(subtotalWan * 10) / 10, buffer: template.buffer, totalWan: Math.round(totalWan * 10) / 10 }
+      const totalWan    = subtotalWan * (1 + template.buffer)
+      return {
+        items,
+        subtotalWan: Math.round(subtotalWan * 10) / 10,
+        buffer: template.buffer,
+        totalWan: Math.round(totalWan * 10) / 10,
+      }
     },
     effectiveBuild() {
       const t = this.tierDefaults
       const o = this.overrides
+      const r = t.roles || {}
       return {
-        pmLow:   o.buildPersonMonthLow  ?? t.buildPersonMonthLow,
-        pmHigh:  o.buildPersonMonthHigh ?? t.buildPersonMonthHigh,
-        durLow:  o.durationLow  ?? t.durationLow,
-        durHigh: o.durationHigh ?? t.durationHigh,
-        salLow:  o.monthlyCostLow  ?? 25,
-        salHigh: o.monthlyCostHigh ?? 35,
+        pmCount:   o.pmCount   ?? r.pm    ?? 0,
+        archCount: o.archCount ?? r.arch  ?? 0,
+        engLow:    o.engCountLow  ?? r.engLow  ?? 1,
+        engHigh:   o.engCountHigh ?? r.engHigh ?? 1,
+        durLow:    o.durationLow  ?? t.durationLow,
+        durHigh:   o.durationHigh ?? t.durationHigh,
+        pmArchSal: o.pmArchSal ?? r.pmArchSal ?? 35,
+        engSal:    o.engSal    ?? r.engSal    ?? 28,
       }
     },
     effectiveMaint() {
       const t = this.tierDefaults
       const o = this.overrides
+      const r = t.roles || {}
       return {
-        pmLow:   o.maintMonthLow  ?? t.maintMonthLow,
-        pmHigh:  o.maintMonthHigh ?? t.maintMonthHigh,
-        salLow:  o.monthlyCostLow  ?? 25,
-        salHigh: o.monthlyCostHigh ?? 35,
+        pmLow:  o.maintMonthLow  ?? t.maintMonthLow,
+        pmHigh: o.maintMonthHigh ?? t.maintMonthHigh,
+        engSal: o.engSal ?? r.engSal ?? 28,
       }
     },
   },
@@ -164,6 +204,22 @@ createApp({
   methods: {
     fmt(n) {
       return Math.round(n || 0)
+    },
+
+    formatQueries(n) {
+      if (!n || n === 0) return '0'
+      if (n >= 10000000) return (n / 10000000).toFixed(1) + '千萬'
+      if (n >= 1000000)  return (n / 1000000).toFixed(1) + '百萬'
+      if (n >= 10000)    return (n / 10000).toFixed(1) + '萬'
+      return n.toLocaleString('zh-TW')
+    },
+
+    adjustRole(field, delta) {
+      const r       = this.tierDefaults.roles || {}
+      const defVal  = field === 'pmCount' ? (r.pm ?? 0) : (r.arch ?? 0)
+      const maxVal  = field === 'pmCount' ? 3 : 2
+      const current = this.overrides[field] ?? defVal
+      this.overrides[field] = Math.min(maxVal, Math.max(0, current + delta))
     },
 
     resetWeights() {
@@ -228,7 +284,13 @@ createApp({
         lines.push('量級 XL 費用高度客製化，請洽請廠商評估。')
         lines.push('雲端年費基準：500–3,000 萬（含 25% 緩衝）')
       } else {
+        const eb = this.effectiveBuild
+        const engRange = eb.engLow === eb.engHigh ? String(eb.engLow) : `${eb.engLow}–${eb.engHigh}`
+        const roleDesc = eb.archCount > 0
+          ? `${eb.pmCount} PM × ${eb.pmArchSal}萬 + ${eb.archCount} 架構師 × ${eb.pmArchSal}萬 + ${engRange} 工程師 × ${eb.engSal}萬`
+          : `${eb.pmCount} PM/架構師 × ${eb.pmArchSal}萬 + ${engRange} 工程師 × ${eb.engSal}萬`
         lines.push(`建置費：${this.fmt(c.buildLow)}–${this.fmt(c.buildHigh)} 萬（中位約 ${this.fmt(c.buildMid)} 萬）`)
+        lines.push(`  角色：${roleDesc} × ${eb.durLow}–${eb.durHigh} 月`)
         lines.push(`雲端年費：${c.cloudLow}–${c.cloudHigh} 萬（含緩衝）`)
         lines.push(`維運費：${this.fmt(c.maintLow)}–${this.fmt(c.maintHigh)} 萬/年`)
         if (this.tier !== 'S') {
@@ -247,16 +309,24 @@ createApp({
         }
       }
 
-      // 列出被覆蓋的微調值
+      if (this.answers.q7 === 'b') {
+        lines.push('', '【AI 費用】')
+        const src = this.overrides.aiMonthlyQueries != null ? '手動設定' : 'Q1/Q2 推算'
+        lines.push(`月查詢量：${this.effectiveAiMonthlyQueries.toLocaleString('zh-TW')} 次（${src}）`)
+      }
+
       const tweaked = []
-      if (this.overrides.durationLow != null)          tweaked.push(`期程低端：${this.overrides.durationLow} 月`)
-      if (this.overrides.durationHigh != null)         tweaked.push(`期程高端：${this.overrides.durationHigh} 月`)
-      if (this.overrides.buildPersonMonthLow != null)  tweaked.push(`建置人月低端：${this.overrides.buildPersonMonthLow}`)
-      if (this.overrides.buildPersonMonthHigh != null) tweaked.push(`建置人月高端：${this.overrides.buildPersonMonthHigh}`)
-      if (this.overrides.monthlyCostLow != null)       tweaked.push(`月薪基準低端：${this.overrides.monthlyCostLow} 萬`)
-      if (this.overrides.monthlyCostHigh != null)      tweaked.push(`月薪基準高端：${this.overrides.monthlyCostHigh} 萬`)
-      if (this.overrides.maintMonthLow != null)        tweaked.push(`維運人月低端：${this.overrides.maintMonthLow}`)
-      if (this.overrides.maintMonthHigh != null)        tweaked.push(`維運人月高端：${this.overrides.maintMonthHigh}`)
+      if (this.overrides.durationLow    != null) tweaked.push(`期程低端：${this.overrides.durationLow} 月`)
+      if (this.overrides.durationHigh   != null) tweaked.push(`期程高端：${this.overrides.durationHigh} 月`)
+      if (this.overrides.pmCount        != null) tweaked.push(`PM 人數：${this.overrides.pmCount}`)
+      if (this.overrides.archCount      != null) tweaked.push(`架構師人數：${this.overrides.archCount}`)
+      if (this.overrides.engCountLow    != null) tweaked.push(`工程師人數低端：${this.overrides.engCountLow}`)
+      if (this.overrides.engCountHigh   != null) tweaked.push(`工程師人數高端：${this.overrides.engCountHigh}`)
+      if (this.overrides.pmArchSal      != null) tweaked.push(`PM/架構師月薪：${this.overrides.pmArchSal} 萬`)
+      if (this.overrides.engSal         != null) tweaked.push(`工程師月薪：${this.overrides.engSal} 萬`)
+      if (this.overrides.maintMonthLow  != null) tweaked.push(`維運人月低端：${this.overrides.maintMonthLow}`)
+      if (this.overrides.maintMonthHigh != null) tweaked.push(`維運人月高端：${this.overrides.maintMonthHigh}`)
+      if (this.overrides.aiMonthlyQueries != null) tweaked.push(`月查詢量：${this.overrides.aiMonthlyQueries.toLocaleString('zh-TW')} 次`)
       if (tweaked.length > 0) {
         lines.push('', '【進階微調（已覆蓋預設值）】')
         lines.push(...tweaked)
