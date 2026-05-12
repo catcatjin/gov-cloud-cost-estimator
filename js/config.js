@@ -53,7 +53,13 @@ const AI_QUERY_MAP_Q2 = { a: 833,  b: 4167,  c: 41667,  d: 416667,  e: 833333  }
 const CLOUD_TEMPLATES = {
   S: {
     base: [
-      { id: 'appSvc', label: 'App Service S1', sku: 'App Service S1', instances: 1 },
+      { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 's1', adjustable: true, min: 1, max: 4,
+        options: [
+          { id: 's1', label: 'S1（Standard 1核 1.75GB）', sku: 'App Service S1',  monthlyNTD: 1180 },
+          { id: 's2', label: 'S2（Standard 2核 3.5GB）',  monthlyNTD: 2360 },
+          { id: 's3', label: 'S3（Standard 4核 7GB）',    monthlyNTD: 4720 },
+        ],
+      },
       { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2,
         options: [
           { id: 'gp_d2ds', label: 'D2ds_v4（GP 2核 8GB）',  sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 4900 },
@@ -101,7 +107,13 @@ const CLOUD_TEMPLATES = {
   },
   M: {
     base: [
-      { id: 'appSvc',  label: 'App Service S1',            sku: 'App Service S1',  instances: 2, adjustable: true, min: 1, max: 8 },
+      { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 's1', adjustable: true, min: 1, max: 8,
+        options: [
+          { id: 's1',   label: 'S1（Standard 1核 1.75GB）', sku: 'App Service S1',   monthlyNTD: 1180 },
+          { id: 's2',   label: 'S2（Standard 2核 3.5GB）',  monthlyNTD: 2360 },
+          { id: 'p1v3', label: 'P1v3（Premium 2核 8GB）',   sku: 'App Service P1v3', monthlyNTD: 3080 },
+        ],
+      },
       { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2,
         options: [
           { id: 'gp_d2ds', label: 'D2ds_v4（GP 2核 8GB）',  sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 4900 },
@@ -154,7 +166,13 @@ const CLOUD_TEMPLATES = {
   },
   L: {
     base: [
-      { id: 'appSvc',  label: 'App Service P1v3',        sku: 'App Service P1v3',      instances: 4, adjustable: true, min: 2, max: 12 },
+      { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 'p1v3', adjustable: true, min: 2, max: 12,
+        options: [
+          { id: 'p1v3', label: 'P1v3（Premium 2核 8GB）',   sku: 'App Service P1v3', monthlyNTD: 3080 },
+          { id: 'p2v3', label: 'P2v3（Premium 4核 16GB）',  monthlyNTD: 6190 },
+          { id: 'p3v3', label: 'P3v3（Premium 8核 32GB）',  monthlyNTD: 12360 },
+        ],
+      },
       { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d4ds', adjustable: true, min: 1, max: 3,
         options: [
           { id: 'gp_d4ds', label: 'D4ds_v4（GP 4核 16GB）',  sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700  },
