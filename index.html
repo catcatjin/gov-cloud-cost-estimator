@@ -109,6 +109,12 @@
                 <span>–</span>
                 <input type="number" v-model.number="overrides.monthlyCostHigh" placeholder="35" min="15" max="80">
               </div>
+              <div class="tweak-row">
+                <label>維運人月</label>
+                <input type="number" v-model.number="overrides.maintMonthLow"  :placeholder="tierDefaults.maintMonthLow"  min="0.1" step="0.1">
+                <span>–</span>
+                <input type="number" v-model.number="overrides.maintMonthHigh" :placeholder="tierDefaults.maintMonthHigh" min="0.1" step="0.1">
+              </div>
             </div>
           </div>
 

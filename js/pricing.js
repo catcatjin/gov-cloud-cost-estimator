@@ -58,7 +58,7 @@ async function fetchAzurePrices() {
       }
     }
     if (Object.keys(results).length > 0) {
-      _pricingData        = results
+      _pricingData        = { ...PRICING_SNAPSHOT.prices, ...results }
       _pricingSource      = 'api'
       _pricingLastUpdated = new Date().toISOString().slice(0, 10)
     }
