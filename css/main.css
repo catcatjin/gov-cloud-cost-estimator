@@ -419,6 +419,21 @@ main.main-layout, .main-layout {
   opacity: 0.4;
   cursor: not-allowed;
 }
+.item-select {
+  flex: 1;
+  min-width: 0;
+  max-width: 200px;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 11px;
+  color: #2d3748;
+  background: #fff;
+  cursor: pointer;
+}
+.cloud-item-selectable .cloud-name {
+  flex: 0 0 auto;
+}
 .xl-bundle-notice {
   padding: 6px 10px;
   background: #fffbeb;

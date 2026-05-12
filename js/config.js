@@ -53,9 +53,14 @@ const AI_QUERY_MAP_Q2 = { a: 833,  b: 4167,  c: 41667,  d: 416667,  e: 833333  }
 const CLOUD_TEMPLATES = {
   S: {
     base: [
-      { id: 'appSvc', label: 'App Service B1',           sku: 'App Service B1',  instances: 1 },
-      { id: 'db',     label: 'PostgreSQL Flexible B1ms', sku: 'PostgreSQL B1ms', instances: 1 },
-      { id: 'other',  label: 'Blob Storage + DNS/SSL',   monthlyNTD: 300,        instances: 1 },
+      { id: 'appSvc', label: 'App Service S1', sku: 'App Service S1', instances: 1 },
+      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2,
+        options: [
+          { id: 'gp_d2ds', label: 'D2ds_v4（GP 2核 8GB）',  sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 4900 },
+          { id: 'gp_d4ds', label: 'D4ds_v4（GP 4核 16GB）', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700 },
+        ],
+      },
+      { id: 'other',  label: 'Blob Storage + DNS/SSL', monthlyNTD: 300, instances: 1 },
     ],
     ai: [
       { id: 'openai', label: 'Azure OpenAI（GPT-4o）', type: 'ai-token',
@@ -97,9 +102,15 @@ const CLOUD_TEMPLATES = {
   M: {
     base: [
       { id: 'appSvc',  label: 'App Service S1',            sku: 'App Service S1',  instances: 2, adjustable: true, min: 1, max: 8 },
-      { id: 'db',      label: 'PostgreSQL Flexible B2ms',  monthlyNTD: 1800,       instances: 1 },
-      { id: 'storage', label: 'Blob Storage（50–500 GB）', monthlyNTD: 800,        instances: 1 },
-      { id: 'network', label: 'API Management + DNS',      monthlyNTD: 1200,       instances: 1 },
+      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2,
+        options: [
+          { id: 'gp_d2ds', label: 'D2ds_v4（GP 2核 8GB）',  sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 4900 },
+          { id: 'gp_d4ds', label: 'D4ds_v4（GP 4核 16GB）', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700 },
+          { id: 'gp_d8ds', label: 'D8ds_v4（GP 8核 32GB）', monthlyNTD: 19400 },
+        ],
+      },
+      { id: 'storage', label: 'Blob Storage（50–500 GB）', monthlyNTD: 800,  instances: 1 },
+      { id: 'network', label: 'API Management Basic + DNS', monthlyNTD: 3300, instances: 1 },
     ],
     ai: [
       { id: 'openai',   label: 'Azure OpenAI（GPT-4o）',   type: 'ai-token',
@@ -144,7 +155,13 @@ const CLOUD_TEMPLATES = {
   L: {
     base: [
       { id: 'appSvc',  label: 'App Service P1v3',        sku: 'App Service P1v3',      instances: 4, adjustable: true, min: 2, max: 12 },
-      { id: 'db',      label: 'PostgreSQL GP D2ds v4',   sku: 'PostgreSQL GP D2ds v4', instances: 1 },
+      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d4ds', adjustable: true, min: 1, max: 3,
+        options: [
+          { id: 'gp_d4ds', label: 'D4ds_v4（GP 4核 16GB）',  sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700  },
+          { id: 'gp_d8ds', label: 'D8ds_v4（GP 8核 32GB）',  monthlyNTD: 19400 },
+          { id: 'gp_e4ds', label: 'E4ds_v4（MO 4核 32GB）',  monthlyNTD: 14000 },
+        ],
+      },
       { id: 'storage', label: 'Blob Storage 分層',        monthlyNTD: 2500,             instances: 1 },
       { id: 'network', label: 'CDN + API Mgmt Standard', monthlyNTD: 12500,            instances: 1 },
     ],

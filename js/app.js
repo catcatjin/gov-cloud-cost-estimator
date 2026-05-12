@@ -106,9 +106,10 @@ createApp({
       showAdvanced: true,
       showWeights: false,
       pricingData: {},
-      checkedServices:  {},  // { [bundleId__serviceId]: boolean }
-      serviceInstances: {},  // { [bundleId__serviceId | base__serviceId]: number }
-      expandedBundles:  {},  // { [bundleId]: boolean }
+      checkedServices:   {},  // { [bundleId__serviceId]: boolean }
+      serviceInstances:  {},  // { [bundleId__serviceId | base__serviceId]: number }
+      serviceSelections: {},  // { [base__serviceId]: optionId }（selectable 下拉選項）
+      expandedBundles:   {},  // { [bundleId]: boolean }
       pricingSource: 'snapshot',
       pricingLastUpdated: null,
       pricingLoading: false,
@@ -166,11 +167,22 @@ createApp({
         const effectiveInstances = item.adjustable
           ? (this.serviceInstances[key] ?? item.instances)
           : item.instances
-        const monthlyNTD = item.sku
-          ? (this.pricingData[item.sku] || 0) * effectiveInstances
-          : item.monthlyNTD * effectiveInstances
+        let monthlyNTD = 0
+        let selectedOption = null
+        if (item.type === 'selectable') {
+          const selId = this.serviceSelections[key] ?? item.defaultOption
+          selectedOption = item.options.find(o => o.id === selId) ?? item.options[0]
+          const unitPrice = selectedOption.sku
+            ? (this.pricingData[selectedOption.sku] || selectedOption.monthlyNTD || 0)
+            : (selectedOption.monthlyNTD || 0)
+          monthlyNTD = unitPrice * effectiveInstances
+        } else if (item.sku) {
+          monthlyNTD = (this.pricingData[item.sku] || 0) * effectiveInstances
+        } else {
+          monthlyNTD = item.monthlyNTD * effectiveInstances
+        }
         const yearWan = monthlyNTD * 12 / 10000
-        return { ...item, key, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10 }
+        return { ...item, key, effectiveInstances, selectedOption, yearWan: Math.round(yearWan * 10) / 10 }
       })
 
       // AI 功能（Q7='b' 才包含）
@@ -334,6 +346,10 @@ createApp({
       this.serviceInstances = { ...this.serviceInstances, [key]: clamped }
     },
 
+    setServiceSelection(key, optionId) {
+      this.serviceSelections = { ...this.serviceSelections, [key]: optionId }
+    },
+
     toggleBundleExpand(bundleId) {
       this.expandedBundles = { ...this.expandedBundles, [bundleId]: !this.expandedBundles[bundleId] }
     },
@@ -449,8 +465,9 @@ createApp({
   watch: {
     tier(newTier, oldTier) {
       if (newTier !== oldTier && this.allAnswered) {
-        this.serviceInstances = {}
-        this.expandedBundles  = {}
+        this.serviceInstances  = {}
+        this.serviceSelections = {}
+        this.expandedBundles   = {}
         this.autoSelectBundles()
       }
     },
