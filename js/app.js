@@ -62,7 +62,16 @@ const QUESTIONS = [
     ],
   },
   {
-    id: 'q7', title: '⑦ AI 功能',
+    id: 'q7', title: '⑦ 可用性要求',
+    options: [
+      { key: 'a', label: '上班時間（5×8）',                              shortLabel: '5x8' },
+      { key: 'b', label: '7×24，可短暫停機修復',                          shortLabel: '7x24基本' },
+      { key: 'c', label: '7×24，99.9% 以上 SLA（~8.7 小時/年停機上限）', shortLabel: '99.9%' },
+      { key: 'd', label: '7×24，99.99% 以上 SLA（幾乎零停機）',           shortLabel: '99.99%' },
+    ],
+  },
+  {
+    id: 'q8', title: '⑧ AI 功能',
     options: [
       { key: 'a', label: '無 AI 功能', shortLabel: '無' },
       { key: 'b', label: '有 AI 功能（如智慧客服、文件摘要）', shortLabel: '有' },
@@ -74,7 +83,7 @@ createApp({
   data() {
     return {
       questions: QUESTIONS,
-      answers: { q1: null, q2: null, q3: null, q4: null, q5: null, q6: null, q7: null },
+      answers: { q1: null, q2: null, q3: null, q4: null, q5: null, q6: null, q7: null, q8: null },
       weights: JSON.parse(JSON.stringify(WEIGHTS)), // 可變副本，供使用者調整
       overrides: {
         // 建置角色人數
@@ -148,7 +157,7 @@ createApp({
       if (!this.allAnswered) return null
       const tpl = this.effectiveTemplate
       if (!tpl) return null
-      const hasAI = this.answers.q7 === 'b'
+      const hasAI = this.answers.q8 === 'b'
       const isXL  = this.tier === 'XL'
 
       // 基礎平台
@@ -410,7 +419,7 @@ createApp({
         }
       }
 
-      if (this.answers.q7 === 'b') {
+      if (this.answers.q8 === 'b') {
         lines.push('', '【AI 費用】')
         const src = this.overrides.aiMonthlyQueries != null ? '手動設定' : 'Q1/Q2 推算'
         lines.push(`月查詢量：${this.effectiveAiMonthlyQueries.toLocaleString('zh-TW')} 次（${src}）`)

@@ -8,7 +8,8 @@ const WEIGHTS = {
   q4: { a: 0,  b: 5,  c: 10, d: 20 },         // 外部系統介接
   q5: { a: 0,  b: 5,  c: 15 },                // 金流處理
   q6: { a: 0,  b: 5,  c: 10, d: 25 },         // 尖峰流量倍率
-  q7: { a: 0,  b: 10 },                       // AI 功能
+  q7: { a: 0,  b: 3,  c: 10, d: 20 },         // 可用性要求
+  q8: { a: 0,  b: 10 },                       // AI 功能
 }
 
 // roles: 各量級角色組成預設值（pm/arch/engLow/engHigh/pmArchSal/engSal）
@@ -108,14 +109,14 @@ const CLOUD_TEMPLATES = {
       },
       {
         id: 'ha', label: '高可用',
-        autoSelect: (answers) => answers.q6 === 'c' || answers.q6 === 'd',
+        autoSelect: (answers) => answers.q6 === 'c' || answers.q6 === 'd' || answers.q7 === 'c' || answers.q7 === 'd',
         items: [
           { id: 'haInstance', label: 'HA 額外實例', monthlyNTD: 1560, instances: 1, adjustable: true, min: 1, max: 4 },
         ],
       },
       {
         id: 'dr', label: '異地備援',
-        autoSelect: (answers) => answers.q3 === 'c' || answers.q3 === 'd',
+        autoSelect: (answers) => answers.q3 === 'c' || answers.q3 === 'd' || answers.q7 === 'd',
         items: [
           { id: 'grs', label: 'GRS 跨區備份', monthlyNTD: 170, instances: 1 },
         ],
@@ -154,14 +155,14 @@ const CLOUD_TEMPLATES = {
       },
       {
         id: 'ha', label: '高可用',
-        autoSelect: (answers) => answers.q6 === 'c' || answers.q6 === 'd',
+        autoSelect: (answers) => answers.q6 === 'c' || answers.q6 === 'd' || answers.q7 === 'c' || answers.q7 === 'd',
         items: [
           { id: 'haZone', label: 'HA 跨可用區', monthlyNTD: 12500, instances: 1 },
         ],
       },
       {
         id: 'dr', label: '異地備援',
-        autoSelect: (answers) => answers.q3 === 'c' || answers.q3 === 'd',
+        autoSelect: (answers) => answers.q3 === 'c' || answers.q3 === 'd' || answers.q7 === 'd',
         items: [
           { id: 'drSync', label: 'DR 即時同步',   monthlyNTD: 4200, instances: 1 },
           { id: 'grs',    label: 'GRS Blob 備份', monthlyNTD: 2000, instances: 1 },
@@ -184,3 +185,4 @@ const CLOUD_TEMPLATES = {
 if (typeof module !== 'undefined') {
   module.exports = { WEIGHTS, TIER_DEFAULTS, CLOUD_TEMPLATES, AI_QUERY_MAP_Q1, AI_QUERY_MAP_Q2 }
 }
+
