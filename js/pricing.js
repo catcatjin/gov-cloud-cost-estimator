@@ -27,6 +27,8 @@ const PRICING_SNAPSHOT = {
     'PostgreSQL GP D8ds v4':   'D8ds v4（General Purpose）',
     'PostgreSQL GP E4ds v4':   'E4ds v4（Memory Optimized）',
     'OpenAI GPT-4o Input':     'GPT-4o（Input）',
+    'API Management Basic':    'Basic（API 閘道）',
+    'API Management Standard': 'Standard（API 閘道 + VNet + SLA 99.95%）',
   },
 }
 

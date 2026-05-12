@@ -53,14 +53,14 @@ const AI_QUERY_MAP_Q2 = { a: 833,  b: 4167,  c: 41667,  d: 416667,  e: 833333  }
 const CLOUD_TEMPLATES = {
   S: {
     base: [
-      { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 's1', adjustable: true, min: 1, max: 4,
+      { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 's1', adjustable: true, min: 1, max: 4, instances: 1,
         options: [
           { id: 's1', sku: 'App Service S1',  monthlyNTD: 1180 },
           { id: 's2', sku: 'App Service S2',  monthlyNTD: 2360 },
           { id: 's3', sku: 'App Service S3',  monthlyNTD: 4720 },
         ],
       },
-      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2,
+      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2, instances: 1,
         options: [
           { id: 'gp_d2ds', sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 4900 },
           { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700 },
@@ -107,14 +107,14 @@ const CLOUD_TEMPLATES = {
   },
   M: {
     base: [
-      { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 's1', adjustable: true, min: 1, max: 8,
+      { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 's1', adjustable: true, min: 1, max: 8, instances: 1,
         options: [
           { id: 's1',   sku: 'App Service S1',   monthlyNTD: 1180 },
           { id: 's2',   sku: 'App Service S2',   monthlyNTD: 2360 },
           { id: 'p1v3', sku: 'App Service P1v3', monthlyNTD: 3080 },
         ],
       },
-      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2,
+      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2, instances: 1,
         options: [
           { id: 'gp_d2ds', sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 4900 },
           { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700 },
@@ -122,7 +122,12 @@ const CLOUD_TEMPLATES = {
         ],
       },
       { id: 'storage', label: 'Blob Storage（50–500 GB）', monthlyNTD: 800,  instances: 1 },
-      { id: 'network', label: 'API Management Basic + DNS', monthlyNTD: 3300, instances: 1 },
+      { id: 'network', label: 'API Management + DNS', type: 'selectable', defaultOption: 'apim_basic', instances: 1,
+        options: [
+          { id: 'apim_basic',    sku: 'API Management Basic',    monthlyNTD: 3300 },
+          { id: 'apim_standard', sku: 'API Management Standard', monthlyNTD: 8000 },
+        ],
+      },
     ],
     ai: [
       { id: 'openai',   label: 'Azure OpenAI（GPT-4o）',   type: 'ai-token',
@@ -166,14 +171,14 @@ const CLOUD_TEMPLATES = {
   },
   L: {
     base: [
-      { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 'p1v3', adjustable: true, min: 2, max: 12,
+      { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 'p1v3', adjustable: true, min: 2, max: 12, instances: 2,
         options: [
           { id: 'p1v3', sku: 'App Service P1v3', monthlyNTD: 3080 },
           { id: 'p2v3', sku: 'App Service P2v3', monthlyNTD: 6190 },
           { id: 'p3v3', sku: 'App Service P3v3', monthlyNTD: 12360 },
         ],
       },
-      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d4ds', adjustable: true, min: 1, max: 3,
+      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d4ds', adjustable: true, min: 1, max: 3, instances: 1,
         options: [
           { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700  },
           { id: 'gp_d8ds', sku: 'PostgreSQL GP D8ds v4', monthlyNTD: 19400 },
