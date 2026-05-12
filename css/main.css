@@ -276,7 +276,6 @@ main.main-layout, .main-layout {
   border-bottom: 1px solid #f0f0f0;
   background: #fafbfc;
 }
-.cloud-item:nth-child(even) { background: #fff; }
 .cloud-layer-badge {
   font-size: 10px;
   font-weight: 700;
@@ -370,6 +369,7 @@ main.main-layout, .main-layout {
   font-size: 10px;
   color: #718096;
   padding: 0 8px 4px 32px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 /* 進階微調提示文字 */
