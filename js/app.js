@@ -191,6 +191,8 @@ createApp({
       if (this.overrides.buildPersonMonthHigh != null) tweaked.push(`建置人月高端：${this.overrides.buildPersonMonthHigh}`)
       if (this.overrides.monthlyCostLow != null)       tweaked.push(`月薪基準低端：${this.overrides.monthlyCostLow} 萬`)
       if (this.overrides.monthlyCostHigh != null)      tweaked.push(`月薪基準高端：${this.overrides.monthlyCostHigh} 萬`)
+      if (this.overrides.maintMonthLow != null)        tweaked.push(`維運人月低端：${this.overrides.maintMonthLow}`)
+      if (this.overrides.maintMonthHigh != null)        tweaked.push(`維運人月高端：${this.overrides.maintMonthHigh}`)
       if (tweaked.length > 0) {
         lines.push('', '【進階微調（已覆蓋預設值）】')
         lines.push(...tweaked)
