@@ -1,0 +1,255 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', '微軟正黑體', sans-serif;
+  background: #f7f8fa;
+  color: #2d3748;
+  font-size: 14px;
+}
+
+/* ===== 標題列 ===== */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header-title { font-weight: 700; font-size: 15px; }
+.header-pricing { display: flex; align-items: center; gap: 8px; }
+
+.btn-refresh {
+  padding: 5px 12px;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+}
+.btn-refresh:hover { background: #f7fafc; }
+.btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.pricing-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.badge-api      { background: #c6f6d5; color: #276749; }
+.badge-snapshot { background: #feebc8; color: #744210; }
+
+/* ===== 主版面（兩欄） ===== */
+.main-layout {
+  display: flex;
+  gap: 0;
+  height: calc(100vh - 49px);
+}
+
+.panel-left {
+  flex: 0 0 420px;
+  overflow-y: auto;
+  padding: 16px;
+  border-right: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.panel-right {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: #f7f8fa;
+}
+
+/* ===== 問卷卡片 ===== */
+.question-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #fff;
+}
+.question-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2d3748;
+}
+
+.options { display: flex; flex-direction: column; gap: 4px; }
+
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.option-label:hover { border-color: #90cdf4; background: #ebf8ff; }
+.option-label.selected { border-color: #4299e1; background: #ebf8ff; }
+.option-label input[type="radio"] { margin: 0; }
+.option-text { flex: 1; }
+.option-score { font-size: 11px; color: #2b6cb0; font-weight: 700; }
+
+/* ===== 右側結果面板 ===== */
+.incomplete-hint {
+  text-align: center;
+  color: #718096;
+  margin-top: 60px;
+  font-size: 14px;
+}
+
+.tier-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.tier-badge {
+  font-size: 20px;
+  font-weight: 700;
+  padding: 6px 18px;
+  border-radius: 6px;
+  color: #fff;
+}
+.tier-S  { background: #48bb78; }
+.tier-M  { background: #4299e1; }
+.tier-L  { background: #ed8936; }
+.tier-XL { background: #e53e3e; }
+.total-score { color: #718096; font-size: 13px; }
+
+.xl-warning {
+  background: #fff5f5;
+  border: 1px solid #feb2b2;
+  border-radius: 6px;
+  padding: 14px;
+  color: #c53030;
+  line-height: 1.7;
+}
+
+.cost-section {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+.cost-row:last-child { border-bottom: none; }
+.cost-total {
+  font-weight: 700;
+  font-size: 15px;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 2px solid #e2e8f0;
+  border-bottom: none;
+}
+
+/* ===== 折疊區塊 ===== */
+.collapsible { margin-bottom: 10px; }
+
+.collapse-toggle {
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  color: #4a5568;
+}
+.collapse-toggle:hover { background: #f7fafc; }
+
+.collapse-toggle-row {
+  display: flex;
+  gap: 8px;
+}
+.collapse-toggle-row .collapse-toggle { flex: 1; }
+
+.collapse-content {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  padding: 12px;
+}
+
+/* ===== 進階微調 ===== */
+.tweak-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.tweak-row label { width: 110px; font-size: 12px; color: #4a5568; flex-shrink: 0; }
+.tweak-row input[type="number"] {
+  width: 70px;
+  padding: 4px 6px;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* ===== 計分權重 ===== */
+.weights-panel { max-height: 320px; overflow-y: auto; }
+.weight-question { margin-bottom: 10px; }
+.weight-question-title { font-size: 12px; font-weight: 600; color: #4a5568; margin-bottom: 4px; }
+.weight-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.weight-option { display: flex; align-items: center; gap: 4px; }
+.weight-label { font-size: 11px; color: #718096; }
+.weight-input {
+  width: 44px;
+  padding: 2px 4px;
+  border: 1px solid #cbd5e0;
+  border-radius: 3px;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ===== 複製按鈕 ===== */
+.btn-copy {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  background: #4299e1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-copy:hover  { background: #3182ce; }
+.btn-copy.copied { background: #48bb78; }
+
+/* ===== 重設按鈕 ===== */
+.btn-reset {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  color: #718096;
+}
+.btn-reset:hover { background: #fff5f5; color: #e53e3e; border-color: #fed7d7; }
+
+/* ===== 響應式：小螢幕改單欄 ===== */
+@media (max-width: 768px) {
+  .main-layout { flex-direction: column; height: auto; }
+  .panel-left  { flex: none; border-right: none; border-bottom: 1px solid #e2e8f0; }
+}

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>政府資訊系統規模估算工具</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <span class="header-title">政府資訊系統規模估算工具 v1.0</span>
+      <div class="header-pricing">
+        <button @click="refreshPricing" :disabled="pricingLoading" class="btn-refresh">
+          {{ pricingLoading ? '更新中…' : '更新費率' }}
+        </button>
+        <span class="pricing-badge" :class="pricingSource === 'api' ? 'badge-api' : 'badge-snapshot'">
+          {{ pricingSource === 'api' ? '✓ Azure API' : '快照' }}
+          {{ pricingLastUpdated }}
+        </span>
+      </div>
+    </header>
+
+    <div class="main-layout">
+      <!-- 左側：問卷 -->
+      <div class="panel-left">
+        <div v-for="q in questions" :key="q.id" class="question-card">
+          <div class="question-title">{{ q.title }}</div>
+          <div class="options">
+            <label
+              v-for="opt in q.options"
+              :key="opt.key"
+              class="option-label"
+              :class="{ selected: answers[q.id] === opt.key }"
+            >
+              <input type="radio" :name="q.id" :value="opt.key" v-model="answers[q.id]">
+              <span class="option-text">{{ opt.label }}</span>
+              <span class="option-score" v-if="answers[q.id] === opt.key">
+                +{{ weights[q.id][opt.key] }}
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右側：結果 -->
+      <div class="panel-right">
+        <div v-if="!allAnswered" class="incomplete-hint">
+          請完成所有 7 題問卷以取得估算結果
+        </div>
+        <div v-else>
+          <!-- 量級徽章 -->
+          <div class="tier-section">
+            <span class="tier-badge" :class="'tier-' + tier">量級 {{ tier }}</span>
+            <span class="total-score">總分：{{ score }} 分</span>
+          </div>
+
+          <!-- XL 警示 -->
+          <div v-if="tier === 'XL'" class="xl-warning">
+            ⚠️ 量級 XL 費用高度客製化，本工具僅提供量級對標。<br>
+            建議洽請具同等專案經驗之廠商評估，並參考振興券、普發 6000 等同級對標案例。
+          </div>
+
+          <!-- 費用明細 -->
+          <div v-else class="cost-section">
+            <div class="cost-row">
+              <span>建置費</span>
+              <span>{{ fmt(costs.buildLow) }}–{{ fmt(costs.buildHigh) }} 萬</span>
+            </div>
+            <div class="cost-row">
+              <span>雲端年費</span>
+              <span>{{ costs.cloudLow }}–{{ costs.cloudHigh }} 萬</span>
+            </div>
+            <div class="cost-row">
+              <span>維運費</span>
+              <span>{{ fmt(costs.maintLow) }}–{{ fmt(costs.maintHigh) }} 萬/年</span>
+            </div>
+            <div class="cost-row" v-if="tier !== 'S'">
+              <span>預備金（{{ (tierDefaults.contingency * 100).toFixed(0) }}%）</span>
+              <span>≈ {{ fmt(costs.reserve) }} 萬</span>
+            </div>
+            <div class="cost-row cost-total">
+              <span>一年期總費</span>
+              <span>{{ fmt(costs.totalLow) }}–{{ fmt(costs.totalHigh) }} 萬</span>
+            </div>
+          </div>
+
+          <!-- 進階微調 -->
+          <div class="collapsible">
+            <button class="collapse-toggle" @click="showAdvanced = !showAdvanced">
+              {{ showAdvanced ? '▲' : '▼' }} 進階微調
+            </button>
+            <div v-if="showAdvanced && tier !== 'XL'" class="collapse-content">
+              <div class="tweak-row">
+                <label>期程（月）</label>
+                <input type="number" v-model.number="overrides.durationLow"  :placeholder="tierDefaults.durationLow"           min="1">
+                <span>–</span>
+                <input type="number" v-model.number="overrides.durationHigh" :placeholder="tierDefaults.durationHigh"          min="1">
+              </div>
+              <div class="tweak-row">
+                <label>建置人月</label>
+                <input type="number" v-model.number="overrides.buildPersonMonthLow"  :placeholder="tierDefaults.buildPersonMonthLow"  min="0.5" step="0.5">
+                <span>–</span>
+                <input type="number" v-model.number="overrides.buildPersonMonthHigh" :placeholder="tierDefaults.buildPersonMonthHigh" min="0.5" step="0.5">
+              </div>
+              <div class="tweak-row">
+                <label>月薪基準（萬）</label>
+                <input type="number" v-model.number="overrides.monthlyCostLow"  placeholder="25" min="15" max="80">
+                <span>–</span>
+                <input type="number" v-model.number="overrides.monthlyCostHigh" placeholder="35" min="15" max="80">
+              </div>
+            </div>
+          </div>
+
+          <!-- 計分權重調整 -->
+          <div class="collapsible">
+            <div class="collapse-toggle-row">
+              <button class="collapse-toggle" @click="showWeights = !showWeights">
+                {{ showWeights ? '▲' : '▼' }} 調整計分權重
+              </button>
+              <button class="btn-reset" @click="resetWeights">重設為預設值</button>
+            </div>
+            <div v-if="showWeights" class="collapse-content weights-panel">
+              <div v-for="q in questions" :key="q.id" class="weight-question">
+                <div class="weight-question-title">{{ q.title }}</div>
+                <div class="weight-options">
+                  <div v-for="opt in q.options" :key="opt.key" class="weight-option">
+                    <span class="weight-label">{{ opt.shortLabel || opt.label }}</span>
+                    <input type="number" v-model.number="weights[q.id][opt.key]" min="0" class="weight-input">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 複製按鈕 -->
+          <button class="btn-copy" :class="{ copied: copyStatus === 'copied' }" @click="copyResult">
+            {{ copyStatus === 'copied' ? '✓ 已複製' : '複製結果文字' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 載入順序：Vue → config → calculator → pricing → app -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/pricing.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
