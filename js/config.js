@@ -122,12 +122,13 @@ const CLOUD_TEMPLATES = {
         ],
       },
       { id: 'storage', label: 'Blob Storage（50–500 GB）', monthlyNTD: 800,  instances: 1 },
-      { id: 'network', label: 'API Management + DNS', type: 'selectable', defaultOption: 'apim_basic', instances: 1,
+      { id: 'apim', label: 'API Management', type: 'selectable', defaultOption: 'apim_basic', instances: 1,
         options: [
-          { id: 'apim_basic',    sku: 'API Management Basic',    monthlyNTD: 3300 },
-          { id: 'apim_standard', sku: 'API Management Standard', monthlyNTD: 8000 },
+          { id: 'apim_basic',    sku: 'API Management Basic',    monthlyNTD: 3100 },
+          { id: 'apim_standard', sku: 'API Management Standard', monthlyNTD: 7800 },
         ],
       },
+      { id: 'dns', label: 'DNS', monthlyNTD: 200, instances: 1 },
     ],
     ai: [
       { id: 'openai',   label: 'Azure OpenAI（GPT-4o）',   type: 'ai-token',
@@ -186,7 +187,14 @@ const CLOUD_TEMPLATES = {
         ],
       },
       { id: 'storage', label: 'Blob Storage 分層',        monthlyNTD: 2500,             instances: 1 },
-      { id: 'network', label: 'CDN + API Mgmt Standard', monthlyNTD: 12500,            instances: 1 },
+      { id: 'cdn',  label: 'Azure CDN / Front Door',   monthlyNTD: 4300,  instances: 1 },
+      { id: 'apim', label: 'API Management', type: 'selectable', defaultOption: 'apim_standard', instances: 1,
+        options: [
+          { id: 'apim_standard', sku: 'API Management Standard', monthlyNTD: 7800 },
+          { id: 'apim_premium',  sku: 'API Management Premium',  monthlyNTD: 30000 },
+        ],
+      },
+      { id: 'dns', label: 'DNS', monthlyNTD: 200, instances: 1 },
     ],
     ai: [
       { id: 'openai',   label: 'Azure OpenAI（GPT-4o）',       type: 'ai-token',

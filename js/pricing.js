@@ -28,7 +28,8 @@ const PRICING_SNAPSHOT = {
     'PostgreSQL GP E4ds v4':   'E4ds v4（Memory Optimized）',
     'OpenAI GPT-4o Input':     'GPT-4o（Input）',
     'API Management Basic':    'Basic（API 閘道）',
-    'API Management Standard': 'Standard（API 閘道 + VNet + SLA 99.95%）',
+    'API Management Standard': 'Standard（VNet + SLA 99.95%）',
+    'API Management Premium':  'Premium（多區域部署 + 私有端點）',
   },
 }
 
