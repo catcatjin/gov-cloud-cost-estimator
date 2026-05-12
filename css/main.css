@@ -43,10 +43,9 @@ body {
 .badge-snapshot { background: #feebc8; color: #744210; }
 
 /* ===== 主版面（兩欄） ===== */
-.main-layout {
+main.main-layout, .main-layout {
   display: flex;
-  gap: 0;
-  height: calc(100vh - 49px);
+  min-height: calc(100vh - 56px);
 }
 
 .panel-left {
@@ -99,7 +98,7 @@ body {
 /* ===== 右側結果面板 ===== */
 .incomplete-hint {
   text-align: center;
-  color: #718096;
+  color: #4a5568;
   margin-top: 60px;
   font-size: 14px;
 }
@@ -121,7 +120,7 @@ body {
 .tier-M  { background: #4299e1; }
 .tier-L  { background: #ed8936; }
 .tier-XL { background: #e53e3e; }
-.total-score { color: #718096; font-size: 13px; }
+.total-score { color: #4a5568; font-size: 13px; }
 
 .xl-warning {
   background: #fff5f5;
@@ -208,7 +207,7 @@ body {
 .weight-question-title { font-size: 12px; font-weight: 600; color: #4a5568; margin-bottom: 4px; }
 .weight-options { display: flex; flex-wrap: wrap; gap: 6px; }
 .weight-option { display: flex; align-items: center; gap: 4px; }
-.weight-label { font-size: 11px; color: #718096; }
+.weight-label { font-size: 11px; color: #4a5568; }
 .weight-input {
   width: 44px;
   padding: 2px 4px;
@@ -244,7 +243,7 @@ body {
   background: #fff;
   cursor: pointer;
   font-size: 12px;
-  color: #718096;
+  color: #4a5568;
 }
 .btn-reset:hover { background: #fff5f5; color: #e53e3e; border-color: #fed7d7; }
 

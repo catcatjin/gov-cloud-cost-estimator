@@ -21,7 +21,7 @@
       </div>
     </header>
 
-    <div class="main-layout">
+    <main class="main-layout">
       <!-- 左側：問卷 -->
       <div class="panel-left">
         <div v-for="q in questions" :key="q.id" class="question-card">
@@ -76,7 +76,7 @@
               <span>{{ fmt(costs.maintLow) }}–{{ fmt(costs.maintHigh) }} 萬/年</span>
             </div>
             <div class="cost-row" v-if="tier !== 'S'">
-              <span>預備金（{{ (tierDefaults.contingency * 100).toFixed(0) }}%）</span>
+              <span>預備金（{{ contingencyPct }}%）</span>
               <span>≈ {{ fmt(costs.reserve) }} 萬</span>
             </div>
             <div class="cost-row cost-total">
@@ -87,7 +87,7 @@
 
           <!-- 進階微調 -->
           <div class="collapsible">
-            <button class="collapse-toggle" @click="showAdvanced = !showAdvanced">
+            <button class="collapse-toggle" :aria-expanded="showAdvanced.toString()" @click="showAdvanced = !showAdvanced">
               {{ showAdvanced ? '▲' : '▼' }} 進階微調
             </button>
             <div v-if="showAdvanced && tier !== 'XL'" class="collapse-content">
@@ -115,7 +115,7 @@
           <!-- 計分權重調整 -->
           <div class="collapsible">
             <div class="collapse-toggle-row">
-              <button class="collapse-toggle" @click="showWeights = !showWeights">
+              <button class="collapse-toggle" :aria-expanded="showWeights.toString()" @click="showWeights = !showWeights">
                 {{ showWeights ? '▲' : '▼' }} 調整計分權重
               </button>
               <button class="btn-reset" @click="resetWeights">重設為預設值</button>
@@ -139,7 +139,7 @@
           </button>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 
   <!-- 載入順序：Vue → config → calculator → pricing → app -->
