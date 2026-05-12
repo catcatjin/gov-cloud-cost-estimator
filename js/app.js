@@ -97,7 +97,9 @@ createApp({
       showAdvanced: true,
       showWeights: false,
       pricingData: {},
-      instanceOverrides: {},
+      checkedServices:  {},  // { [bundleId__serviceId]: boolean }
+      serviceInstances: {},  // { [bundleId__serviceId | base__serviceId]: number }
+      expandedBundles:  {},  // { [bundleId]: boolean }
       pricingSource: 'snapshot',
       pricingLastUpdated: null,
       pricingLoading: false,
@@ -106,6 +108,9 @@ createApp({
   },
 
   computed: {
+    effectiveTemplate() {
+      return CLOUD_TEMPLATES[this.tier] || CLOUD_TEMPLATES['L']
+    },
     derivedAiMonthlyQueries() {
       const q1 = AI_QUERY_MAP_Q1[this.answers.q1] || 0
       const q2 = AI_QUERY_MAP_Q2[this.answers.q2] || 0
@@ -136,41 +141,75 @@ createApp({
       return Math.round(c * 100)
     },
     cloudBufferPct() {
-      return { S: 10, M: 15, L: 20, XL: 25 }[this.tier] || 0
+      const tpl = this.effectiveTemplate
+      return tpl ? Math.round(tpl.buffer * 100) : 0
     },
     cloudBreakdown() {
-      if (!this.allAnswered || this.tier === 'XL') return null
-      const template = CLOUD_TEMPLATES[this.tier]
-      if (!template) return null
+      if (!this.allAnswered) return null
+      const tpl = this.effectiveTemplate
+      if (!tpl) return null
       const hasAI = this.answers.q7 === 'b'
-      const items = template.items
-        .filter(item => !item.aiOptional || hasAI)
-        .map(item => {
-          const effectiveInstances = item.adjustable
-            ? (this.instanceOverrides[item.id] ?? item.instances)
-            : (item.instances ?? 1)
-          let monthlyNTD = 0
-          let pricingNote = null
-          if (item.type === 'ai-token') {
-            const q          = this.effectiveAiMonthlyQueries
-            const unitPrice  = this.pricingData[item.sku] || 0.16
-            monthlyNTD       = q * item.tokensPerQuery / 1000 * unitPrice
-            const srcLabel   = this.pricingSource === 'api' ? 'Azure API' : '快照'
-            pricingNote      = `NTD ${unitPrice.toFixed(3)}/1K tokens（${srcLabel} ${this.pricingLastUpdated ?? ''}）`
-          } else if (item.sku) {
-            monthlyNTD = (this.pricingData[item.sku] || 0) * effectiveInstances
-          } else if (item.monthlyNTD !== undefined) {
-            monthlyNTD = item.monthlyNTD * effectiveInstances
-          }
-          const yearWan = monthlyNTD * 12 / 10000
-          return { ...item, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10, pricingNote }
+      const isXL  = this.tier === 'XL'
+
+      // 基礎平台
+      const baseItems = tpl.base.map(item => {
+        const key = 'base__' + item.id
+        const effectiveInstances = item.adjustable
+          ? (this.serviceInstances[key] ?? item.instances)
+          : item.instances
+        const monthlyNTD = item.sku
+          ? (this.pricingData[item.sku] || 0) * effectiveInstances
+          : item.monthlyNTD * effectiveInstances
+        const yearWan = monthlyNTD * 12 / 10000
+        return { ...item, key, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10 }
+      })
+
+      // AI 功能（Q7='b' 才包含）
+      const aiItems = hasAI ? tpl.ai.map(item => {
+        let monthlyNTD = 0
+        let pricingNote = null
+        if (item.type === 'ai-token') {
+          const q         = this.effectiveAiMonthlyQueries
+          const unitPrice = this.pricingData[item.sku] || 0.16
+          monthlyNTD      = q * item.tokensPerQuery / 1000 * unitPrice
+          const srcLabel  = this.pricingSource === 'api' ? 'Azure API' : '快照'
+          pricingNote     = `NTD ${unitPrice.toFixed(3)}/1K tokens（${srcLabel} ${this.pricingLastUpdated ?? ''}）`
+        } else {
+          monthlyNTD = item.monthlyNTD * (item.instances ?? 1)
+        }
+        const yearWan = monthlyNTD * 12 / 10000
+        return { ...item, yearWan: Math.round(yearWan * 10) / 10, pricingNote }
+      }) : []
+
+      // 需求包
+      const bundles = tpl.bundles.map(bundle => {
+        const items = bundle.items.map(svc => {
+          const key            = bundle.id + '__' + svc.id
+          const svcChecked     = !!this.checkedServices[key]
+          const effectiveInstances = svc.adjustable
+            ? (this.serviceInstances[key] ?? svc.instances)
+            : svc.instances
+          const monthlyNTD     = svcChecked ? svc.monthlyNTD * effectiveInstances : 0
+          const yearWan        = monthlyNTD * 12 / 10000
+          return { ...svc, key, svcChecked, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10 }
         })
-      const subtotalWan = items.reduce((s, i) => s + i.yearWan, 0)
-      const totalWan    = subtotalWan * (1 + template.buffer)
+        const bundleYearWan = items.reduce((s, i) => s + i.yearWan, 0)
+        const isExpanded    = !!this.expandedBundles[bundle.id]
+        return { ...bundle, items, bundleYearWan: Math.round(bundleYearWan * 10) / 10, isExpanded }
+      })
+
+      const baseWan     = baseItems.reduce((s, i) => s + i.yearWan, 0)
+      const aiWan       = aiItems.reduce((s, i) => s + i.yearWan, 0)
+      const bundleWan   = bundles.reduce((s, b) => s + b.bundleYearWan, 0)
+      const subtotalWan = baseWan + aiWan + bundleWan
+      const totalWan    = subtotalWan * (1 + tpl.buffer)
       return {
-        items,
+        baseItems,
+        aiItems,
+        bundles,
+        isXL,
         subtotalWan: Math.round(subtotalWan * 10) / 10,
-        buffer: template.buffer,
+        buffer: tpl.buffer,
         totalWan: Math.round(totalWan * 10) / 10,
       }
     },
@@ -230,17 +269,63 @@ createApp({
       this.weights = JSON.parse(JSON.stringify(WEIGHTS))
     },
 
-    adjustInstance(itemId, delta) {
-      const template = CLOUD_TEMPLATES[this.tier]
-      if (!template) return
-      const item = template.items.find(i => i.id === itemId)
-      if (!item || !item.adjustable) return
-      const current = this.instanceOverrides[itemId] ?? item.instances
-      const next = Math.min(item.max, Math.max(item.min, current + delta))
-      this.instanceOverrides = { ...this.instanceOverrides, [itemId]: next }
+    autoSelectBundles() {
+      const tpl = this.effectiveTemplate
+      if (!tpl) return
+      const isXL = this.tier === 'XL'
+      const newCheckedServices = {}
+      for (const bundle of tpl.bundles) {
+        const shouldCheck = !isXL && bundle.autoSelect(this.answers, this.tier)
+        for (const svc of bundle.items) {
+          newCheckedServices[bundle.id + '__' + svc.id] = shouldCheck
+        }
+      }
+      this.checkedServices = newCheckedServices
     },
-    resetInstanceOverrides() {
-      this.instanceOverrides = {}
+
+    getBundleChecked(bundleId) {
+      const tpl = this.effectiveTemplate
+      if (!tpl) return false
+      const bundle = tpl.bundles.find(b => b.id === bundleId)
+      if (!bundle) return false
+      return bundle.items.some(svc => !!this.checkedServices[bundleId + '__' + svc.id])
+    },
+
+    getBundleIndeterminate(bundleId) {
+      const tpl = this.effectiveTemplate
+      if (!tpl) return false
+      const bundle = tpl.bundles.find(b => b.id === bundleId)
+      if (!bundle) return false
+      const checkedCount = bundle.items.filter(svc => !!this.checkedServices[bundleId + '__' + svc.id]).length
+      return checkedCount > 0 && checkedCount < bundle.items.length
+    },
+
+    toggleBundle(bundleId) {
+      const tpl = this.effectiveTemplate
+      if (!tpl) return
+      const bundle = tpl.bundles.find(b => b.id === bundleId)
+      if (!bundle) return
+      const newVal = !this.getBundleChecked(bundleId)
+      const newSvcs = { ...this.checkedServices }
+      for (const svc of bundle.items) {
+        newSvcs[bundleId + '__' + svc.id] = newVal
+      }
+      this.checkedServices = newSvcs
+    },
+
+    toggleService(bundleId, serviceId) {
+      const key    = bundleId + '__' + serviceId
+      const newVal = !this.checkedServices[key]
+      this.checkedServices = { ...this.checkedServices, [key]: newVal }
+    },
+
+    setServiceInstance(key, value, min, max) {
+      const clamped = Math.min(max ?? 99, Math.max(min ?? 1, Math.round(value) || 1))
+      this.serviceInstances = { ...this.serviceInstances, [key]: clamped }
+    },
+
+    toggleBundleExpand(bundleId) {
+      this.expandedBundles = { ...this.expandedBundles, [bundleId]: !this.expandedBundles[bundleId] }
     },
 
     async refreshPricing() {
@@ -286,7 +371,11 @@ createApp({
 
       if (this.tier === 'XL') {
         lines.push('量級 XL 費用高度客製化，請洽請廠商評估。')
-        lines.push('雲端年費基準：500–3,000 萬（含 25% 緩衝）')
+        if (this.cloudBreakdown && this.cloudBreakdown.totalWan > 0) {
+          lines.push(`雲端費用參考（L 量級費率）：${this.cloudBreakdown.totalWan.toFixed(1)} 萬（實際需議價）`)
+        } else {
+          lines.push('雲端年費基準：500–3,000 萬（含 25% 緩衝）')
+        }
       } else {
         const eb = this.effectiveBuild
         const engRange = eb.engLow === eb.engHigh ? String(eb.engLow) : `${eb.engLow}–${eb.engHigh}`
@@ -295,7 +384,14 @@ createApp({
           : `${eb.pmCount} PM/架構師 × ${eb.pmArchSal}萬 + ${engRange} 工程師 × ${eb.engSal}萬`
         lines.push(`建置費：${this.fmt(c.buildLow)}–${this.fmt(c.buildHigh)} 萬（中位約 ${this.fmt(c.buildMid)} 萬）`)
         lines.push(`  角色：${roleDesc} × ${eb.durLow}–${eb.durHigh} 月`)
-        lines.push(`雲端年費：${c.cloudLow}–${c.cloudHigh} 萬（含緩衝）`)
+        const cloudTotal = this.cloudBreakdown ? this.cloudBreakdown.totalWan.toFixed(1) + '萬' : `${c.cloudLow}–${c.cloudHigh} 萬`
+        lines.push(`雲端年費（含 ${this.cloudBufferPct}% 緩衝）：${cloudTotal}`)
+        if (this.cloudBreakdown) {
+          const checkedNames = this.cloudBreakdown.bundles
+            .filter(b => this.getBundleChecked(b.id))
+            .map(b => b.label)
+          if (checkedNames.length > 0) lines.push(`  需求包：${checkedNames.join('、')}`)
+        }
         lines.push(`維運費：${this.fmt(c.maintLow)}–${this.fmt(c.maintHigh)} 萬/年`)
         if (this.tier !== 'S') {
           lines.push(`預備金（${this.contingencyPct}%）：≈ ${this.fmt(c.reserve)} 萬`)
@@ -337,6 +433,15 @@ createApp({
       }
 
       return lines.join('\n')
+    },
+  },
+
+  watch: {
+    tier(newTier, oldTier) {
+      if (newTier !== oldTier && this.allAnswered) this.autoSelectBundles()
+    },
+    allAnswered(newVal) {
+      if (newVal) this.autoSelectBundles()
     },
   },
 
