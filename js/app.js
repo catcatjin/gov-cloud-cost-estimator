@@ -106,6 +106,7 @@ createApp({
       showAdvanced: true,
       showWeights: false,
       pricingData: {},
+      pricingMeta: {},
       checkedServices:   {},  // { [bundleId__serviceId]: boolean }
       serviceInstances:  {},  // { [bundleId__serviceId | base__serviceId]: number }
       serviceSelections: {},  // { [base__serviceId]: optionId }（selectable 下拉選項）
@@ -361,6 +362,7 @@ createApp({
         this.pricingSource = result.pricingSource
         this.pricingLastUpdated = result.pricingLastUpdated
         this.pricingData = result.pricingData
+        this.pricingMeta = result.pricingMeta
       } finally {
         this.pricingLoading = false
       }
@@ -485,5 +487,6 @@ createApp({
     this.pricingSource = status.pricingSource
     this.pricingLastUpdated = status.pricingLastUpdated
     this.pricingData = status.pricingData
+    this.pricingMeta = status.pricingMeta
   },
 }).mount('#app')
