@@ -122,12 +122,15 @@
                       {{ bundle.label }}
                     </label>
                     <span class="bundle-cost">{{ bundle.bundleYearWan > 0 ? '+' + bundle.bundleYearWan.toFixed(1) + ' 萬/年' : '— 萬/年' }}</span>
-                    <button class="bundle-expand-btn" @click="toggleBundleExpand(bundle.id)">{{ bundle.isExpanded ? '▲' : '▼' }}</button>
+                    <button class="bundle-expand-btn" @click="toggleBundleExpand(bundle.id)"
+                      :aria-label="bundle.isExpanded ? '收合 ' + bundle.label : '展開 ' + bundle.label"
+                      :aria-expanded="bundle.isExpanded.toString()">{{ bundle.isExpanded ? '▲' : '▼' }}</button>
                   </div>
                   <div v-if="bundle.isExpanded" class="bundle-items">
                     <div v-for="svc in bundle.items" :key="svc.id" class="cloud-item cloud-item-svc">
                       <label class="svc-checkbox-label">
-                        <input type="checkbox" :checked="svc.svcChecked" @change="toggleService(bundle.id, svc.id)">
+                        <input type="checkbox" :checked="svc.svcChecked" @change="toggleService(bundle.id, svc.id)"
+                          :aria-label="svc.label">
                       </label>
                       <span class="cloud-name">{{ svc.label }}</span>
                       <template v-if="svc.adjustable">
@@ -171,7 +174,7 @@
               </div>
               <div class="cost-detail">{{ effectiveMaint.pmLow }}–{{ effectiveMaint.pmHigh }} 人月 × 12 月 × {{ effectiveMaint.engSal }} 萬/人月</div>
             </div>
-            <div class="cost-row" v-if="tier !== 'S' && tier !== 'XL'">
+            <div class="cost-row" v-if="costs && tier !== 'S' && tier !== 'XL'">
               <div class="cost-row-top">
                 <span>預備金（{{ contingencyPct }}%）</span>
                 <span>≈ {{ fmt(costs.reserve) }} 萬</span>
