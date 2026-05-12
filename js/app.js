@@ -280,7 +280,8 @@ createApp({
           newCheckedServices[bundle.id + '__' + svc.id] = shouldCheck
         }
       }
-      this.checkedServices = newCheckedServices
+      this.checkedServices  = newCheckedServices
+      this.expandedBundles  = {}
     },
 
     getBundleChecked(bundleId) {
@@ -374,7 +375,7 @@ createApp({
         if (this.cloudBreakdown && this.cloudBreakdown.totalWan > 0) {
           lines.push(`雲端費用參考（L 量級費率）：${this.cloudBreakdown.totalWan.toFixed(1)} 萬（實際需議價）`)
         } else {
-          lines.push('雲端年費基準：500–3,000 萬（含 25% 緩衝）')
+          lines.push(`雲端年費基準：500–3,000 萬（含 ${this.cloudBufferPct}% 緩衝，XL 規模實際需議價）`)
         }
       } else {
         const eb = this.effectiveBuild
@@ -443,9 +444,6 @@ createApp({
         this.expandedBundles  = {}
         this.autoSelectBundles()
       }
-    },
-    allAnswered(newVal) {
-      if (newVal) this.autoSelectBundles()
     },
     answers: {
       deep: true,
