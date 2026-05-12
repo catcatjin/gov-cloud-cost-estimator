@@ -1,0 +1,14 @@
+{
+  "lastUpdated": "2026-05-11",
+  "region": "eastasia",
+  "currency": "TWD",
+  "note": "此為參考文件。實際離線備援費率內嵌於 js/pricing.js 的 PRICING_SNAPSHOT 物件中，確保 file:// 協議下可用。更新費率時同步更新兩處。",
+  "prices": {
+    "App Service B1":           421,
+    "App Service S1":          2340,
+    "App Service P1v3":        4140,
+    "PostgreSQL B1ms":         1150,
+    "PostgreSQL GP D2ds v4":   5760,
+    "Blob Storage Hot LRS GB":  0.59
+  }
+}
