@@ -66,7 +66,15 @@ const CLOUD_TEMPLATES = {
         id: 'security', label: '資安合規',
         autoSelect: (answers) => answers.q3 !== 'a',
         items: [
-          { id: 'keyVault', label: 'Key Vault（秘密/憑證管理）', monthlyNTD: 400, instances: 1 },
+          { id: 'keyVault',  label: 'Key Vault（秘密/憑證管理）', monthlyNTD: 400,  instances: 1 },
+          { id: 'vulnScan',  label: '弱點掃描（年度合規服務）',   monthlyNTD: 5000, instances: 1 },
+        ],
+      },
+      {
+        id: 'ha', label: '高可用',
+        autoSelect: (answers) => answers.q7 !== 'a',
+        items: [
+          { id: 'haInstance', label: 'HA 額外實例', monthlyNTD: 900, instances: 1 },
         ],
       },
       {
@@ -78,7 +86,7 @@ const CLOUD_TEMPLATES = {
       },
       {
         id: 'observe', label: '可觀測性',
-        autoSelect: (_answers, tier) => tier !== 'S',
+        autoSelect: (answers) => answers.q3 !== 'a',
         items: [
           { id: 'logAnalytics', label: 'Log Analytics（稽核日誌）', monthlyNTD: 300, instances: 1 },
         ],
@@ -89,7 +97,7 @@ const CLOUD_TEMPLATES = {
   M: {
     base: [
       { id: 'appSvc',  label: 'App Service S1',            sku: 'App Service S1',  instances: 2, adjustable: true, min: 1, max: 8 },
-      { id: 'db',      label: 'PostgreSQL Flexible B1ms',  sku: 'PostgreSQL B1ms', instances: 1 },
+      { id: 'db',      label: 'PostgreSQL Flexible B2ms',  monthlyNTD: 1800,       instances: 1 },
       { id: 'storage', label: 'Blob Storage（50–500 GB）', monthlyNTD: 800,        instances: 1 },
       { id: 'network', label: 'API Management + DNS',      monthlyNTD: 1200,       instances: 1 },
     ],
@@ -103,8 +111,10 @@ const CLOUD_TEMPLATES = {
         id: 'security', label: '資安合規',
         autoSelect: (answers) => answers.q3 !== 'a',
         items: [
-          { id: 'keyVault', label: 'Key Vault（秘密/憑證管理）',      monthlyNTD: 400, instances: 1 },
-          { id: 'defender', label: 'Defender for Cloud（威脅偵測）',  monthlyNTD: 300, instances: 1 },
+          { id: 'keyVault',  label: 'Key Vault（秘密/憑證管理）',      monthlyNTD: 400,   instances: 1 },
+          { id: 'waf',       label: 'WAF（網頁應用防火牆）',           monthlyNTD: 6000,  instances: 1 },
+          { id: 'defender',  label: 'Defender for Cloud（威脅偵測）',  monthlyNTD: 300,   instances: 1 },
+          { id: 'vulnScan',  label: '弱點掃描（年度合規服務）',        monthlyNTD: 10000, instances: 1 },
         ],
       },
       {
@@ -118,7 +128,7 @@ const CLOUD_TEMPLATES = {
         id: 'dr', label: '異地備援',
         autoSelect: (answers) => answers.q3 === 'c' || answers.q3 === 'd' || answers.q7 === 'd',
         items: [
-          { id: 'grs', label: 'GRS 跨區備份', monthlyNTD: 170, instances: 1 },
+          { id: 'grs', label: 'GRS 跨區備份', monthlyNTD: 500, instances: 1 },
         ],
       },
       {
@@ -148,9 +158,11 @@ const CLOUD_TEMPLATES = {
         id: 'security', label: '資安合規',
         autoSelect: (answers) => answers.q3 !== 'a',
         items: [
-          { id: 'waf',      label: 'WAF v2（網頁應用防火牆）',        monthlyNTD: 12000, instances: 1 },
-          { id: 'defender', label: 'Defender for Cloud（威脅偵測）',   monthlyNTD: 3700,  instances: 1 },
-          { id: 'ddos',     label: 'DDoS Protection',                  monthlyNTD: 3000,  instances: 1 },
+          { id: 'keyVault',  label: 'Key Vault（秘密/憑證管理）',          monthlyNTD: 400,   instances: 1 },
+          { id: 'waf',       label: 'WAF v2（網頁應用防火牆）',          monthlyNTD: 12000, instances: 1 },
+          { id: 'defender',  label: 'Defender for Cloud（威脅偵測）',    monthlyNTD: 3700,  instances: 1 },
+          { id: 'ddos',      label: 'DDoS Protection',                   monthlyNTD: 3000,  instances: 1 },
+          { id: 'vulnScan',  label: '弱點掃描 + 滲透測試（年度合規）',   monthlyNTD: 20000, instances: 1 },
         ],
       },
       {
