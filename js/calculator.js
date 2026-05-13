@@ -103,9 +103,12 @@ function calcCosts(tier, overrides) {
   return {
     isXL: false,
     buildLow, buildHigh, buildMid,
+    // 參考基準（靜態估算）；UI 改用 cloudBreakdown.totalWan，此值僅供 XL 參考或計算 reserve 中間值
     cloudLow, cloudHigh, cloudMid,
     maintLow, maintHigh, maintMid,
+    // 預備金中間值估算（基於靜態 cloudMid）；UI 非 XL 顯示改用 app.js adjustedReserve
     reserve,
+    // 靜態總費（基於靜態 cloudLow/cloudHigh）；UI 非 XL 顯示改用 app.js adjustedTotalLow/High
     totalLow:  buildLow  + cloudLow  + maintLow,
     totalHigh: buildHigh + cloudHigh + maintHigh,
   }

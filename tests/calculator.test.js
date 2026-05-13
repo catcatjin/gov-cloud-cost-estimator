@@ -57,6 +57,7 @@ test('M buildLow = 816',         () => expect(calcCosts('M').buildLow).toBeClose
 test('M buildHigh = 1968',       () => expect(calcCosts('M').buildHigh).toBeCloseTo(1968))
 test('M maintLow = 168',         () => expect(calcCosts('M').maintLow).toBeCloseTo(168))
 test('M maintHigh = 235.2',      () => expect(calcCosts('M').maintHigh).toBeCloseTo(235.2, 0.5))
+// reserve 此處驗證靜態估算值（cloudMid 基礎），UI 實際顯示的 adjustedReserve 在 app.js 中獨立計算
 test('M reserve ≈ 164.11',       () => expect(calcCosts('M').reserve).toBeCloseTo(164.11, 2))
 
 // ── calcCosts L（角色：1 PM + 1 arch + 4–6 工程師，pmArchSal=45, engSal=30）
@@ -69,6 +70,7 @@ test('L buildLow = 2100',        () => expect(calcCosts('L').buildLow).toBeClose
 test('L buildHigh = 4860',       () => expect(calcCosts('L').buildHigh).toBeCloseTo(4860))
 test('L maintLow = 360',         () => expect(calcCosts('L').maintLow).toBeCloseTo(360))
 test('L maintHigh = 540',        () => expect(calcCosts('L').maintHigh).toBeCloseTo(540))
+// reserve 此處驗證靜態估算值（cloudMid 基礎），UI 實際顯示的 adjustedReserve 在 app.js 中獨立計算
 test('L reserve = 633',          () => expect(calcCosts('L').reserve).toBeCloseTo(633))
 
 // ── calcCosts XL ──────────────────────────────────────────────────────────
