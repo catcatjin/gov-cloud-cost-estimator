@@ -168,17 +168,16 @@ createApp({
       if (!this.costs || this.costs.isXL || !this.cloudBreakdown) return 0
       const rate = this.tierDefaults.contingency || 0
       if (!rate) return 0
-      const cloudWan = this.cloudBreakdown.totalWan
-      return (this.costs.buildMid + cloudWan + this.costs.maintMid) * rate
+      return calcAdjustedReserve(this.costs.buildMid, this.cloudBreakdown.totalWan, this.costs.maintMid, rate)
     },
     // 以 cloudBreakdown 取代靜態 cloudLow/cloudHigh 計算一年期總費
     adjustedTotalLow() {
       if (!this.costs || this.costs.isXL || !this.cloudBreakdown) return null
-      return this.costs.buildLow + this.cloudBreakdown.totalWan + this.costs.maintLow + this.adjustedReserve
+      return calcAdjustedTotalLow(this.costs.buildLow, this.cloudBreakdown.totalWan, this.costs.maintLow, this.adjustedReserve)
     },
     adjustedTotalHigh() {
       if (!this.costs || this.costs.isXL || !this.cloudBreakdown) return null
-      return this.costs.buildHigh + this.cloudBreakdown.totalWan + this.costs.maintHigh + this.adjustedReserve
+      return calcAdjustedTotalHigh(this.costs.buildHigh, this.cloudBreakdown.totalWan, this.costs.maintHigh, this.adjustedReserve)
     },
     cloudBreakdown() {
       if (!this.allAnswered) return null

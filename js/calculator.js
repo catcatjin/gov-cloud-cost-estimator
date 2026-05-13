@@ -114,7 +114,22 @@ function calcCosts(tier, overrides) {
   }
 }
 
+// 以下三個函式為 adjustedReserve/TotalLow/TotalHigh 的純函式版本
+// 對應 app.js 的同名 computed，供 app.js 呼叫與測試共用
+
+function calcAdjustedReserve(buildMid, cloudWan, maintMid, rate) {
+  return (buildMid + cloudWan + maintMid) * rate
+}
+
+function calcAdjustedTotalLow(buildLow, cloudWan, maintLow, reserve) {
+  return buildLow + cloudWan + maintLow + reserve
+}
+
+function calcAdjustedTotalHigh(buildHigh, cloudWan, maintHigh, reserve) {
+  return buildHigh + cloudWan + maintHigh + reserve
+}
+
 // 支援 Node.js（測試）與瀏覽器（全域）兩種環境
 if (typeof module !== 'undefined') {
-  module.exports = { calcScore, calcTier, calcCosts }
+  module.exports = { calcScore, calcTier, calcCosts, calcAdjustedReserve, calcAdjustedTotalLow, calcAdjustedTotalHigh }
 }
