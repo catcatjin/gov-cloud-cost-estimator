@@ -132,24 +132,28 @@
                       :aria-label="bundle.isExpanded ? '收合 ' + bundle.label : '展開 ' + bundle.label"
                       :aria-expanded="bundle.isExpanded.toString()">{{ bundle.isExpanded ? '▲' : '▼' }}</button>
                   </div>
+                  <div v-if="bundle.notice" class="bundle-notice-row">⚠️ {{ bundle.notice }}</div>
                   <div v-if="bundle.isExpanded" class="bundle-items">
-                    <div v-for="svc in bundle.items" :key="svc.id" class="cloud-item cloud-item-svc">
-                      <label class="svc-checkbox-label">
-                        <input type="checkbox" :checked="svc.svcChecked" @change="toggleService(bundle.id, svc.id)"
-                          :aria-label="svc.label">
-                      </label>
-                      <span class="cloud-name">{{ svc.label }}</span>
-                      <template v-if="svc.adjustable">
-                        <input type="number" class="instance-input"
-                          :value="serviceInstances[svc.key] ?? svc.instances"
-                          @change="setServiceInstance(svc.key, +$event.target.value, svc.min, svc.max)"
-                          :min="svc.min" :max="svc.max"
-                          :disabled="!svc.svcChecked">
-                        <span class="cloud-count-fixed">台</span>
-                      </template>
-                      <span v-else class="cloud-count-fixed">× {{ svc.instances }}</span>
-                      <span class="cloud-cost">{{ svc.yearWan.toFixed(1) }} 萬/年</span>
-                    </div>
+                    <template v-for="svc in bundle.items" :key="svc.id">
+                      <div class="cloud-item cloud-item-svc">
+                        <label class="svc-checkbox-label">
+                          <input type="checkbox" :checked="svc.svcChecked" @change="toggleService(bundle.id, svc.id)"
+                            :aria-label="svc.label">
+                        </label>
+                        <span class="cloud-name">{{ svc.label }}</span>
+                        <template v-if="svc.adjustable">
+                          <input type="number" class="instance-input"
+                            :value="serviceInstances[svc.key] ?? svc.instances"
+                            @change="setServiceInstance(svc.key, +$event.target.value, svc.min, svc.max)"
+                            :min="svc.min" :max="svc.max"
+                            :disabled="!svc.svcChecked">
+                          <span class="cloud-count-fixed">台</span>
+                        </template>
+                        <span v-else class="cloud-count-fixed">× {{ svc.instances }}</span>
+                        <span class="cloud-cost">{{ svc.yearWan.toFixed(1) }} 萬/年</span>
+                      </div>
+                      <div v-if="svc.note" class="cloud-pricing-note cloud-svc-note">{{ svc.note }}</div>
+                    </template>
                   </div>
                 </div>
 

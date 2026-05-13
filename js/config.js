@@ -76,9 +76,9 @@ const CLOUD_TEMPLATES = {
       {
         id: 'security', label: '資安合規',
         autoSelect: (answers) => answers.q3 !== 'a',
+        notice: '弱點掃描為合規必要項目，屬非 Azure 市場服務，建議另行詢價。市場行情參考：3–8 萬/年',
         items: [
-          { id: 'keyVault',  label: 'Key Vault（秘密/憑證管理）', monthlyNTD: 400,  instances: 1 },
-          { id: 'vulnScan',  label: '弱點掃描（年度合規服務）',   monthlyNTD: 5000, instances: 1 },
+          { id: 'keyVault', label: 'Key Vault（秘密/憑證管理）', monthlyNTD: 400, instances: 1 },
         ],
       },
       {
@@ -139,11 +139,13 @@ const CLOUD_TEMPLATES = {
       {
         id: 'security', label: '資安合規',
         autoSelect: (answers) => answers.q3 !== 'a',
+        notice: '弱點掃描為合規必要項目，屬非 Azure 市場服務，建議另行詢價。市場行情參考：8–15 萬/年',
         items: [
-          { id: 'keyVault',  label: 'Key Vault（秘密/憑證管理）',      monthlyNTD: 400,   instances: 1 },
-          { id: 'waf',       label: 'WAF（網頁應用防火牆）',           monthlyNTD: 6000,  instances: 1 },
-          { id: 'defender',  label: 'Defender for Cloud（威脅偵測）',  monthlyNTD: 300,   instances: 1 },
-          { id: 'vulnScan',  label: '弱點掃描（年度合規服務）',        monthlyNTD: 10000, instances: 1 },
+          { id: 'keyVault', label: 'Key Vault（秘密/憑證管理）',     monthlyNTD: 400,  instances: 1 },
+          { id: 'waf',      label: 'WAF（網頁應用防火牆）',          monthlyNTD: 6000, instances: 1,
+            note: '以 Azure App Gateway WAF v2 固定費估算，實際依流量用量調整' },
+          { id: 'defender', label: 'Defender for Cloud（威脅偵測）', monthlyNTD: 300,  instances: 1,
+            note: '以 Defender for App Service 單項計算（~432/月），啟用更多資源需另計' },
         ],
       },
       {
@@ -205,12 +207,15 @@ const CLOUD_TEMPLATES = {
       {
         id: 'security', label: '資安合規',
         autoSelect: (answers) => answers.q3 !== 'a',
+        notice: '弱點掃描 + 滲透測試為合規必要項目，屬非 Azure 市場服務，建議另行詢價。市場行情參考：20–40 萬/年',
         items: [
-          { id: 'keyVault',  label: 'Key Vault（秘密/憑證管理）',          monthlyNTD: 400,   instances: 1 },
-          { id: 'waf',       label: 'WAF v2（網頁應用防火牆）',          monthlyNTD: 12000, instances: 1 },
-          { id: 'defender',  label: 'Defender for Cloud（威脅偵測）',    monthlyNTD: 3700,  instances: 1 },
-          { id: 'ddos',      label: 'DDoS Protection',                   monthlyNTD: 3000,  instances: 1 },
-          { id: 'vulnScan',  label: '弱點掃描 + 滲透測試（年度合規）',   monthlyNTD: 20000, instances: 1 },
+          { id: 'keyVault', label: 'Key Vault（秘密/憑證管理）',          monthlyNTD: 400,   instances: 1 },
+          { id: 'waf',      label: 'WAF v2（網頁應用防火牆）',            monthlyNTD: 12000, instances: 1,
+            note: '以 Azure App Gateway WAF v2 高用量估算，實際依容量單位（CU）調整' },
+          { id: 'defender', label: 'Defender for Cloud（威脅偵測）',      monthlyNTD: 3700,  instances: 1,
+            note: '以 App Service + Storage + DB 多服務啟用估算，實際依啟用項目調整' },
+          { id: 'ddos',     label: 'DDoS Protection',                     monthlyNTD: 6000,  instances: 1,
+            note: '以 Azure DDoS IP Protection（$199 USD/IP/月）計算' },
         ],
       },
       {

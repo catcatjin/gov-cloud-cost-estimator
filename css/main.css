@@ -441,6 +441,17 @@ main.main-layout, .main-layout {
   font-size: 11px;
   border-bottom: 1px solid #fbd38d;
 }
+.bundle-notice-row {
+  padding: 5px 10px;
+  background: #fffbeb;
+  color: #744210;
+  font-size: 11px;
+  border-bottom: 1px solid #fbd38d;
+}
+.cloud-svc-note {
+  padding-left: 32px;
+  background: #fafbfc;
+}
 
 /* ===== 響應式：小螢幕改單欄 ===== */
 @media (max-width: 768px) {
