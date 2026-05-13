@@ -44,6 +44,8 @@ let _pricingData         = PRICING_SNAPSHOT.prices
 let _pricingMeta         = PRICING_SNAPSHOT.meta
 let _pricingSource       = 'snapshot'
 let _pricingLastUpdated  = PRICING_SNAPSHOT.lastUpdated
+let _pricingApiCount     = 0   // 本次成功從 API 取得的 SKU 數量
+let _pricingApiTotal     = 0   // 本次嘗試查詢的 SKU 總數
 
 const AZURE_API = 'https://prices.azure.com/api/retail/prices'
 
@@ -103,10 +105,12 @@ async function fetchAzurePrices() {
         // 單一 SKU 失敗（含 AbortError）不中斷其他查詢
       }
     }
-    if (Object.keys(results).length > 0) {
+    _pricingApiTotal = skus.length
+    _pricingApiCount = Object.keys(results).length
+    if (_pricingApiCount > 0) {
       _pricingData        = { ...PRICING_SNAPSHOT.prices, ...results }
       _pricingMeta        = { ...PRICING_SNAPSHOT.meta, ...metaResults }
-      _pricingSource      = 'api'
+      _pricingSource      = _pricingApiCount === _pricingApiTotal ? 'api' : 'api-partial'
       _pricingLastUpdated = new Date().toISOString().slice(0, 10)
     }
   } finally {
@@ -121,5 +125,7 @@ function getPricingStatus() {
     pricingMeta:        _pricingMeta,
     pricingSource:      _pricingSource,
     pricingLastUpdated: _pricingLastUpdated,
+    pricingApiCount:    _pricingApiCount,
+    pricingApiTotal:    _pricingApiTotal,
   }
 }

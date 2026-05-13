@@ -113,6 +113,8 @@ createApp({
       expandedBundles:   {},  // { [bundleId]: boolean }
       pricingSource: 'snapshot',
       pricingLastUpdated: null,
+      pricingApiCount: 0,
+      pricingApiTotal: 0,
       pricingLoading: false,
       copyStatus: '',
     }
@@ -391,10 +393,12 @@ createApp({
       this.pricingLoading = true
       try {
         const result = await fetchAzurePrices()
-        this.pricingSource = result.pricingSource
+        this.pricingSource      = result.pricingSource
         this.pricingLastUpdated = result.pricingLastUpdated
-        this.pricingData = result.pricingData
-        this.pricingMeta = result.pricingMeta
+        this.pricingData        = result.pricingData
+        this.pricingMeta        = result.pricingMeta
+        this.pricingApiCount    = result.pricingApiCount
+        this.pricingApiTotal    = result.pricingApiTotal
       } finally {
         this.pricingLoading = false
       }
@@ -505,20 +509,20 @@ createApp({
         this.autoSelectBundles()
       }
     },
-    answers: {
-      deep: true,
-      handler() {
-        if (this.allAnswered) this.autoSelectBundles()
-      },
+    // 只在「首次全部作答完成」時自動選需求包，之後答題變動不重設手動勾選
+    allAnswered(newVal) {
+      if (newVal) this.autoSelectBundles()
     },
   },
 
   async mounted() {
     await loadPricing()
     const status = getPricingStatus()
-    this.pricingSource = status.pricingSource
+    this.pricingSource      = status.pricingSource
     this.pricingLastUpdated = status.pricingLastUpdated
-    this.pricingData = status.pricingData
-    this.pricingMeta = status.pricingMeta
+    this.pricingData        = status.pricingData
+    this.pricingMeta        = status.pricingMeta
+    this.pricingApiCount    = status.pricingApiCount
+    this.pricingApiTotal    = status.pricingApiTotal
   },
 }).mount('#app')

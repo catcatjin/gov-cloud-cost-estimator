@@ -14,8 +14,11 @@
         <button @click="refreshPricing" :disabled="pricingLoading" class="btn-refresh">
           {{ pricingLoading ? '更新中…' : '更新費率' }}
         </button>
-        <span class="pricing-badge" :class="pricingSource === 'api' ? 'badge-api' : 'badge-snapshot'">
-          {{ pricingSource === 'api' ? '✓ Azure API' : '快照' }}
+        <span class="pricing-badge"
+          :class="pricingSource === 'api' ? 'badge-api' : pricingSource === 'api-partial' ? 'badge-partial' : 'badge-snapshot'">
+          <template v-if="pricingSource === 'api'">✓ Azure API</template>
+          <template v-else-if="pricingSource === 'api-partial'">⚠ 部分 API ({{ pricingApiCount }}/{{ pricingApiTotal }})</template>
+          <template v-else>快照</template>
           {{ pricingLastUpdated }}
         </span>
       </div>
