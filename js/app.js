@@ -450,7 +450,11 @@ createApp({
       const now = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })
       const sourceLabel = this.pricingSource === 'api'
         ? `Azure Retail Pricing API（${this.pricingLastUpdated} 更新）`
-        : `內建快照（${this.pricingLastUpdated}）`
+        : this.pricingSource === 'api-partial'
+          ? `Azure Retail Pricing API 部分（${this.pricingApiCount}/${this.pricingApiTotal} SKU，${this.pricingLastUpdated} 更新）`
+          : this.pricingSource === 'localStorage'
+            ? `快取費率（${this.pricingLastUpdated}，上次 API 更新）`
+            : `內建快照（${this.pricingLastUpdated}）`
 
       const lines = [
         '## 政府資訊系統規模估算',
@@ -486,9 +490,9 @@ createApp({
         }
         lines.push(`維運費：${this.fmt(c.maintLow)}–${this.fmt(c.maintHigh)} 萬/年`)
         if (this.tier !== 'S') {
-          lines.push(`預備金（${this.contingencyPct}%）：≈ ${this.fmt(c.reserve)} 萬`)
+          lines.push(`預備金（${this.contingencyPct}%）：≈ ${this.fmt(this.adjustedReserve)} 萬`)
         }
-        lines.push(`一年期總費：${this.fmt(c.totalLow)}–${this.fmt(c.totalHigh)} 萬`)
+        lines.push(`一年期總費：${this.fmt(this.adjustedTotalLow)}–${this.fmt(this.adjustedTotalHigh)} 萬`)
       }
 
       lines.push('', '【問卷答案】')
