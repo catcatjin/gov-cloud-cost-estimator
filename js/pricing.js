@@ -106,6 +106,32 @@ function _saveToLocalStorage(prices, meta, lastUpdated, apiCount, apiTotal) {
   }
 }
 
+// 先讀舊快取，再 merge 新結果（新結果優先），避免本次部分失敗使快取退化
+function _mergeAndSaveToLocalStorage(newPrices, newMeta, lastUpdated, newCount, total) {
+  try {
+    const raw = localStorage.getItem(LS_KEY)
+    let oldPrices = {}, oldMeta = {}
+    if (raw) {
+      const cached = JSON.parse(raw)
+      oldPrices = cached.prices || {}
+      oldMeta   = cached.meta   || {}
+    }
+    // 新結果優先覆寫；舊快取中本次未成功查詢的 SKU 保留不遺失
+    const mergedPrices = { ...oldPrices, ...newPrices }
+    const mergedMeta   = { ...oldMeta,   ...newMeta   }
+    const mergedCount  = Object.keys(mergedPrices).length
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      prices:    mergedPrices,
+      meta:      mergedMeta,
+      lastUpdated,
+      apiCount:  mergedCount,
+      apiTotal:  total,
+    }))
+  } catch (_e) {
+    // 容量不足或隱私模式，靜默略過
+  }
+}
+
 // 手動或自動呼叫 Azure API；失敗時靜默保留現有資料
 async function fetchAzurePrices() {
   const skus = [
@@ -164,36 +190,50 @@ async function fetchAzurePrices() {
       filter: "serviceName eq 'Storage' and skuName eq 'GRS' and contains(meterName,'Hot') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   ]
 
+  // 每筆 SKU 獨立查詢，各自有 10 秒 timeout，互不影響
+  const fetchOne = async (sku) => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 10000)
+    try {
+      const url = `${AZURE_API}?$filter=${encodeURIComponent(sku.filter)}&currencyCode=TWD`
+      const res  = await fetch(url, { signal: controller.signal })
+      const data = await res.json()
+      if (data.Items && data.Items.length > 0) {
+        return { name: sku.name, price: data.Items[0].retailPrice, meta: data.Items[0].skuName }
+      }
+      return null
+    } catch (_e) {
+      // 單一 SKU 失敗（含 AbortError）回傳 null，不中斷其他查詢
+      return null
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+
+  // 並行查詢所有 SKU，等全部完成（無論成功或失敗）
+  const settled = await Promise.allSettled(skus.map(fetchOne))
+
   const results     = {}
   const metaResults = {}
-  const controller  = new AbortController()
-  const timeout     = setTimeout(() => controller.abort(), 8000)
-  try {
-    for (const sku of skus) {
-      const url = `${AZURE_API}?$filter=${encodeURIComponent(sku.filter)}&currencyCode=TWD`
-      try {
-        const res  = await fetch(url, { signal: controller.signal })
-        const data = await res.json()
-        if (data.Items && data.Items.length > 0) {
-          results[sku.name]     = data.Items[0].retailPrice
-          metaResults[sku.name] = data.Items[0].skuName
-        }
-      } catch (_e) {
-        // 單一 SKU 失敗（含 AbortError）不中斷其他查詢
-      }
+  for (const r of settled) {
+    // 只收 fulfilled 且有回傳值（非 null）的結果
+    if (r.status === 'fulfilled' && r.value) {
+      results[r.value.name]     = r.value.price
+      metaResults[r.value.name] = r.value.meta
     }
-    _pricingApiTotal = skus.length
-    _pricingApiCount = Object.keys(results).length
-    if (_pricingApiCount > 0) {
-      _pricingData        = { ...PRICING_SNAPSHOT.prices, ...results }
-      _pricingMeta        = { ...PRICING_SNAPSHOT.meta,   ...metaResults }
-      _pricingSource      = _pricingApiCount === _pricingApiTotal ? 'api' : 'api-partial'
-      _pricingLastUpdated = new Date().toISOString().slice(0, 10)
-      _saveToLocalStorage(results, metaResults, _pricingLastUpdated, _pricingApiCount, _pricingApiTotal)
-    }
-  } finally {
-    clearTimeout(timeout)
   }
+
+  _pricingApiTotal = skus.length
+  _pricingApiCount = Object.keys(results).length
+
+  if (_pricingApiCount > 0) {
+    _pricingData        = { ...PRICING_SNAPSHOT.prices, ...results }
+    _pricingMeta        = { ...PRICING_SNAPSHOT.meta,   ...metaResults }
+    _pricingSource      = _pricingApiCount === _pricingApiTotal ? 'api' : 'api-partial'
+    _pricingLastUpdated = new Date().toISOString().slice(0, 10)
+    _mergeAndSaveToLocalStorage(results, metaResults, _pricingLastUpdated, _pricingApiCount, _pricingApiTotal)
+  }
+
   return getPricingStatus()
 }
 
