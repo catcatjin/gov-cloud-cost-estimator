@@ -492,7 +492,11 @@ createApp({
         if (this.tier !== 'S') {
           lines.push(`預備金（${this.contingencyPct}%）：≈ ${this.fmt(this.adjustedReserve)} 萬`)
         }
-        lines.push(`一年期總費：${this.fmt(this.adjustedTotalLow)}–${this.fmt(this.adjustedTotalHigh)} 萬`)
+        if (this.cloudBreakdown) {
+          lines.push(`一年期總費：${this.fmt(this.adjustedTotalLow)}–${this.fmt(this.adjustedTotalHigh)} 萬`)
+        } else {
+          lines.push(`一年期總費：${this.fmt(c.totalLow)}–${this.fmt(c.totalHigh)} 萬（靜態估算）`)
+        }
       }
 
       lines.push('', '【問卷答案】')
