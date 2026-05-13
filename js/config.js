@@ -141,7 +141,6 @@ const CLOUD_TEMPLATES = {
         unitSku: 'Blob Storage Hot LRS GB', estimatedUsage: 200, usageUnit: 'GB',
         monthlyNTD: 800 },
       { id: 'apim', label: 'API Management', type: 'selectable', defaultOption: 'apim_basic', instances: 1,
-        note: '估算值：依 Azure API Management 東亞公布定價，不含於 Azure Retail Prices API 自動更新',
         options: [
           { id: 'apim_basic',    sku: 'API Management Basic',    monthlyNTD: 3100 },
           { id: 'apim_standard', sku: 'API Management Standard', monthlyNTD: 7800 },
@@ -223,7 +222,6 @@ const CLOUD_TEMPLATES = {
       { id: 'cdn', label: 'Azure CDN / Front Door', monthlyNTD: 4300, instances: 1,
         note: '估算值：Azure Front Door Standard 固定費 + 流量費概估（~$150 USD/月），依流量規模調整' },
       { id: 'apim', label: 'API Management', type: 'selectable', defaultOption: 'apim_standard', instances: 1,
-        note: '估算值：依 Azure API Management 東亞公布定價，不含於 Azure Retail Prices API 自動更新',
         options: [
           { id: 'apim_standard', sku: 'API Management Standard', monthlyNTD: 7800  },
           { id: 'apim_premium',  sku: 'API Management Premium',  monthlyNTD: 30000 },
