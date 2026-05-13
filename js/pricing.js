@@ -2,15 +2,22 @@
 // 離線費率內嵌（確保 file:// 協議下可用）
 
 const PRICING_SNAPSHOT = {
-  lastUpdated: '2026-05-12',
+  lastUpdated: '2026-05-13',
   prices: {
     'App Service B1':           421,   // TWD/月（eastasia）
     'App Service S1':          2340,
+    'App Service S2':          4680,   // 2× S1，更新前舊值錯誤（2360≈S1）
+    'App Service S3':          9360,   // 4× S1
     'App Service P1v3':        4140,
+    'App Service P2v3':        8280,   // 2× P1v3
+    'App Service P3v3':       16560,   // 4× P1v3
     'PostgreSQL B1ms':         1150,
     'PostgreSQL GP D2ds v4':   5760,
+    'PostgreSQL GP D4ds v4':   9700,   // Azure API 回傳前暫以市場估算
+    'PostgreSQL GP D8ds v4':  19400,
+    'PostgreSQL GP E4ds v4':  14000,
     'Blob Storage Hot LRS GB':  0.59,  // TWD/GB/月
-    'OpenAI GPT-4o Input':      0.16,  // TWD/1K input tokens（eastasia，2026-05-12 快照）
+    'OpenAI GPT-4o Input':      0.16,  // TWD/1K input tokens（eastasia）
   },
   // 規格顯示名稱（API 有回傳 skuName 時自動覆蓋，否則使用此快照值）
   meta: {
@@ -52,12 +59,26 @@ async function fetchAzurePrices() {
       filter: "serviceName eq 'Azure App Service' and skuName eq 'B1' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
     { name: 'App Service S1',
       filter: "serviceName eq 'Azure App Service' and skuName eq 'S1' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    { name: 'App Service S2',
+      filter: "serviceName eq 'Azure App Service' and skuName eq 'S2' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    { name: 'App Service S3',
+      filter: "serviceName eq 'Azure App Service' and skuName eq 'S3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
     { name: 'App Service P1v3',
       filter: "serviceName eq 'Azure App Service' and skuName eq 'P1 v3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    { name: 'App Service P2v3',
+      filter: "serviceName eq 'Azure App Service' and skuName eq 'P2 v3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    { name: 'App Service P3v3',
+      filter: "serviceName eq 'Azure App Service' and skuName eq 'P3 v3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
     { name: 'PostgreSQL B1ms',
       filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'B1MS') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
     { name: 'PostgreSQL GP D2ds v4',
       filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'D2ds') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    { name: 'PostgreSQL GP D4ds v4',
+      filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'D4ds') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    { name: 'PostgreSQL GP D8ds v4',
+      filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'D8ds') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    { name: 'PostgreSQL GP E4ds v4',
+      filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'E4ds') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
     { name: 'Blob Storage Hot LRS GB',
       filter: "serviceName eq 'Storage' and skuName eq 'LRS' and contains(meterName,'Hot') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
     { name: 'OpenAI GPT-4o Input',

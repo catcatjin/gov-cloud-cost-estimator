@@ -56,8 +56,8 @@ const CLOUD_TEMPLATES = {
       { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 's1', adjustable: true, min: 1, max: 4, instances: 1,
         options: [
           { id: 's1', sku: 'App Service S1',  monthlyNTD: 1180 },
-          { id: 's2', sku: 'App Service S2',  monthlyNTD: 2360 },
-          { id: 's3', sku: 'App Service S3',  monthlyNTD: 4720 },
+          { id: 's2', sku: 'App Service S2',  monthlyNTD: 4680 },
+          { id: 's3', sku: 'App Service S3',  monthlyNTD: 9360 },
         ],
       },
       { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2, instances: 1,
@@ -183,8 +183,8 @@ const CLOUD_TEMPLATES = {
       { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 'p1v3', adjustable: true, min: 2, max: 12, instances: 2,
         options: [
           { id: 'p1v3', sku: 'App Service P1v3', monthlyNTD: 3080 },
-          { id: 'p2v3', sku: 'App Service P2v3', monthlyNTD: 6190 },
-          { id: 'p3v3', sku: 'App Service P3v3', monthlyNTD: 12360 },
+          { id: 'p2v3', sku: 'App Service P2v3', monthlyNTD: 8280 },
+          { id: 'p3v3', sku: 'App Service P3v3', monthlyNTD: 16560 },
         ],
       },
       { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d4ds', adjustable: true, min: 1, max: 3, instances: 1,
