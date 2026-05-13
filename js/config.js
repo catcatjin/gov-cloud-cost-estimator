@@ -147,8 +147,7 @@ const CLOUD_TEMPLATES = {
     ai: [
       { id: 'openai',   label: 'Azure OpenAI（GPT-4o）',   type: 'ai-token',
         sku: 'OpenAI GPT-4o Input', tokensPerQuery: 2000 },
-      { id: 'aiSearch', label: 'Azure AI Search（基本）',  monthlyNTD: 2100, instances: 1,
-        note: '估算值：Azure AI Search Basic SKU 東亞定價（~$73 USD/月），不含於 API 自動更新' },
+      { id: 'aiSearch', label: 'Azure AI Search（基本）',  sku: 'AI Search Basic', monthlyNTD: 2100, instances: 1 },
     ],
     bundles: [
       {
@@ -226,8 +225,7 @@ const CLOUD_TEMPLATES = {
     ai: [
       { id: 'openai',   label: 'Azure OpenAI（GPT-4o）',       type: 'ai-token',
         sku: 'OpenAI GPT-4o Input', tokensPerQuery: 2000 },
-      { id: 'aiSearch', label: 'Azure AI Search（標準 S1）',   monthlyNTD: 6300, instances: 1,
-        note: '估算值：Azure AI Search Standard S1 東亞定價（~$219 USD/月），不含於 API 自動更新' },
+      { id: 'aiSearch', label: 'Azure AI Search（標準 S1）',   sku: 'AI Search Standard S1', monthlyNTD: 6300, instances: 1 },
     ],
     bundles: [
       {

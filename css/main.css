@@ -41,6 +41,7 @@ body {
 }
 .badge-api      { background: #c6f6d5; color: #276749; }
 .badge-partial  { background: #bee3f8; color: #2a69ac; }
+.badge-cache    { background: #e9d8fd; color: #553c9a; }
 .badge-snapshot { background: #feebc8; color: #744210; }
 
 /* ===== 主版面（兩欄） ===== */

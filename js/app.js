@@ -225,10 +225,17 @@ createApp({
           const q         = this.effectiveAiMonthlyQueries
           const unitPrice = this.pricingData[item.sku] || 0.16
           monthlyNTD      = q * item.tokensPerQuery / 1000 * unitPrice
-          const srcLabel  = this.pricingSource === 'api' ? 'Azure API' : '快照'
+          const srcLabel  = this.pricingSource === 'api' ? 'Azure API'
+            : this.pricingSource === 'api-partial' ? 'Azure API（部分）'
+            : this.pricingSource === 'localStorage' ? '快取'
+            : '快照'
           pricingNote     = `NTD ${unitPrice.toFixed(3)}/1K tokens（${srcLabel} ${this.pricingLastUpdated ?? ''}）`
         } else {
-          monthlyNTD = item.monthlyNTD * (item.instances ?? 1)
+          // 有 sku 時優先從 pricingData 取官方價格
+          const unitPrice = item.sku
+            ? (this.pricingData[item.sku] || item.monthlyNTD || 0)
+            : (item.monthlyNTD || 0)
+          monthlyNTD = unitPrice * (item.instances ?? 1)
         }
         const yearWan = monthlyNTD * 12 / 10000
         return { ...item, yearWan: Math.round(yearWan * 10) / 10, pricingNote }
