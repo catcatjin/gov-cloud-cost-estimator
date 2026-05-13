@@ -46,7 +46,7 @@
       <!-- 右側：結果 -->
       <div class="panel-right">
         <div v-if="!allAnswered" class="incomplete-hint">
-          請完成所有 7 題問卷以取得估算結果
+          請完成所有 8 題問卷以取得估算結果
         </div>
         <div v-else>
           <!-- 量級徽章 -->
@@ -187,13 +187,13 @@
             <div class="cost-row" v-if="costs && tier !== 'S' && tier !== 'XL'">
               <div class="cost-row-top">
                 <span>預備金（{{ contingencyPct }}%）</span>
-                <span>≈ {{ fmt(costs.reserve) }} 萬</span>
+                <span>≈ {{ fmt(adjustedReserve) }} 萬</span>
               </div>
             </div>
             <div class="cost-row cost-total" v-if="costs && !costs.isXL">
               <div class="cost-row-top">
                 <span>一年期總費</span>
-                <span>{{ fmt(costs.totalLow) }}–{{ fmt(costs.totalHigh) }} 萬</span>
+                <span>{{ fmt(adjustedTotalLow) }}–{{ fmt(adjustedTotalHigh) }} 萬</span>
               </div>
             </div>
           </div>
