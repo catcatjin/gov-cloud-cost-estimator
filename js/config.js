@@ -85,7 +85,10 @@ const CLOUD_TEMPLATES = {
         id: 'ha', label: '高可用',
         autoSelect: (answers) => answers.q7 !== 'a',
         items: [
-          { id: 'haInstance', label: 'HA 額外實例', monthlyNTD: 900, instances: 1 },
+          { id: 'haAppSvc', label: 'App Service HA 實例',    type: 'dynamic-base', baseRef: 'appSvc', instances: 1,
+            note: '以選定 App Service 規格單價計算' },
+          { id: 'haDb',     label: 'PostgreSQL HA Standby', type: 'dynamic-base', baseRef: 'db',     instances: 1,
+            note: '以選定 PostgreSQL 規格單價計算（Flexible Server HA 模式）' },
         ],
       },
       {
@@ -152,7 +155,10 @@ const CLOUD_TEMPLATES = {
         id: 'ha', label: '高可用',
         autoSelect: (answers) => answers.q6 === 'c' || answers.q6 === 'd' || answers.q7 === 'c' || answers.q7 === 'd',
         items: [
-          { id: 'haInstance', label: 'HA 額外實例', monthlyNTD: 1560, instances: 1, adjustable: true, min: 1, max: 4 },
+          { id: 'haAppSvc', label: 'App Service HA 實例',    type: 'dynamic-base', baseRef: 'appSvc', instances: 1, adjustable: true, min: 1, max: 4,
+            note: '以選定 App Service 規格單價計算' },
+          { id: 'haDb',     label: 'PostgreSQL HA Standby', type: 'dynamic-base', baseRef: 'db',     instances: 1,
+            note: '以選定 PostgreSQL 規格單價計算（Flexible Server HA 模式）' },
         ],
       },
       {
@@ -222,7 +228,10 @@ const CLOUD_TEMPLATES = {
         id: 'ha', label: '高可用',
         autoSelect: (answers) => answers.q6 === 'c' || answers.q6 === 'd' || answers.q7 === 'c' || answers.q7 === 'd',
         items: [
-          { id: 'haZone', label: 'HA 跨可用區', monthlyNTD: 12500, instances: 1 },
+          { id: 'haAppSvc', label: 'App Service HA 跨可用區',  type: 'dynamic-base', baseRef: 'appSvc', instances: 1,
+            note: '以選定 App Service 規格單價計算' },
+          { id: 'haDb',     label: 'PostgreSQL HA Standby',   type: 'dynamic-base', baseRef: 'db',     instances: 1,
+            note: '以選定 PostgreSQL 規格單價計算（Flexible Server HA 模式）' },
         ],
       },
       {

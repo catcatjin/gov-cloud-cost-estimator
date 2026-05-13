@@ -186,6 +186,18 @@ createApp({
         return { ...item, key, effectiveInstances, selectedOption, yearWan: Math.round(yearWan * 10) / 10 }
       })
 
+      // bundle dynamic-base 參照用：base item id → 每台月費單價
+      const baseUnitPrice = {}
+      for (const item of baseItems) {
+        if (item.type === 'selectable' && item.selectedOption) {
+          baseUnitPrice[item.id] = item.selectedOption.sku
+            ? (this.pricingData[item.selectedOption.sku] || item.selectedOption.monthlyNTD || 0)
+            : (item.selectedOption.monthlyNTD || 0)
+        } else {
+          baseUnitPrice[item.id] = item.monthlyNTD || 0
+        }
+      }
+
       // AI 功能（Q7='b' 才包含）
       const aiItems = hasAI ? tpl.ai.map(item => {
         let monthlyNTD = 0
@@ -211,7 +223,10 @@ createApp({
           const effectiveInstances = svc.adjustable
             ? (this.serviceInstances[key] ?? svc.instances)
             : svc.instances
-          const monthlyNTD     = svcChecked ? svc.monthlyNTD * effectiveInstances : 0
+          const unitMonthly    = svc.type === 'dynamic-base'
+            ? (baseUnitPrice[svc.baseRef] || 0)
+            : (svc.monthlyNTD || 0)
+          const monthlyNTD     = svcChecked ? unitMonthly * effectiveInstances : 0
           const yearWan        = monthlyNTD * 12 / 10000
           return { ...svc, key, svcChecked, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10 }
         })
