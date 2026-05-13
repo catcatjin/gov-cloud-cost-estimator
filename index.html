@@ -105,7 +105,7 @@
                     <span v-else-if="item.type !== 'selectable'" class="cloud-count-fixed">× {{ item.instances }} 台</span>
                     <span class="cloud-cost">{{ item.yearWan.toFixed(1) }} 萬/年</span>
                   </div>
-                  <div v-if="item.note" class="cloud-pricing-note">{{ item.note }}</div>
+                  <div v-if="item.computedNote || item.note" class="cloud-pricing-note">{{ item.computedNote || item.note }}</div>
                 </template>
 
                 <!-- AI 功能 -->
@@ -159,7 +159,7 @@
                         <span v-else class="cloud-count-fixed">× {{ svc.instances }}</span>
                         <span class="cloud-cost">{{ svc.yearWan.toFixed(1) }} 萬/年</span>
                       </div>
-                      <div v-if="svc.note" class="cloud-pricing-note cloud-svc-note">{{ svc.note }}</div>
+                      <div v-if="svc.computedNote || svc.note" class="cloud-pricing-note cloud-svc-note">{{ svc.computedNote || svc.note }}</div>
                     </template>
                   </div>
                 </div>

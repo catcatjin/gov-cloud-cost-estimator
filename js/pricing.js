@@ -31,6 +31,12 @@ const PRICING_SNAPSHOT = {
     // 以下兩筆為初始估算值，連線後由 Azure Retail Prices API 自動覆蓋
     'AI Search Basic':         2100,
     'AI Search Standard S1':   6300,
+    // ── 用量計費項目（unit price，TWD/單位）──
+    // 以下初始值為估算，連線後由 Azure Retail Prices API 自動覆蓋
+    'Key Vault Operations':         0.96,  // TWD / 萬次（10,000 ops）
+    'Log Analytics Ingestion GB':  78.7,   // TWD / GB 攝取量
+    'App Insights Ingestion GB':   88.3,   // TWD / GB 遙測資料
+    'Blob Storage Hot GRS GB':      1.18,  // TWD / GB / 月（GRS ≈ LRS × 2）
   },
   // 規格顯示名稱（API 有回傳 skuName 時自動覆蓋）
   meta: {
@@ -147,6 +153,15 @@ async function fetchAzurePrices() {
       filter: "serviceName eq 'Search' and skuName eq 'Basic' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
     { name: 'AI Search Standard S1',
       filter: "serviceName eq 'Search' and skuName eq 'Standard S1' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    // 用量計費項目（unit price）
+    { name: 'Key Vault Operations',
+      filter: "serviceName eq 'Key Vault' and contains(meterName,'Operations') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    { name: 'Log Analytics Ingestion GB',
+      filter: "serviceName eq 'Log Analytics' and contains(meterName,'Data Ingestion') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    { name: 'App Insights Ingestion GB',
+      filter: "serviceName eq 'Application Insights' and contains(meterName,'Data') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    { name: 'Blob Storage Hot GRS GB',
+      filter: "serviceName eq 'Storage' and skuName eq 'GRS' and contains(meterName,'Hot') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   ]
 
   const results     = {}

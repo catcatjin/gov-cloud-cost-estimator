@@ -3,6 +3,12 @@
 //              calcScore、calcTier、calcCosts（calculator.js）
 //              loadPricing、fetchAzurePrices、getPricingStatus（pricing.js）
 
+// 用量計費項目的顯示說明（官方費率 × 估算用量）
+function _unitNote(unitPrice, estimatedUsage, usageUnit) {
+  if (unitPrice == null) return null
+  return `${unitPrice.toFixed(2)} TWD/${usageUnit} × 估算 ${estimatedUsage} ${usageUnit}/月`
+}
+
 const { createApp } = Vue
 
 const QUESTIONS = [
@@ -196,13 +202,19 @@ createApp({
             ? (this.pricingData[selectedOption.sku] || selectedOption.monthlyNTD || 0)
             : (selectedOption.monthlyNTD || 0)
           monthlyNTD = unitPrice * effectiveInstances
+        } else if (item.unitSku) {
+          const unitPrice = this.pricingData[item.unitSku] ?? (item.monthlyNTD / (item.estimatedUsage || 1))
+          monthlyNTD = unitPrice * (item.estimatedUsage || 1) * effectiveInstances
         } else if (item.sku) {
           monthlyNTD = (this.pricingData[item.sku] || 0) * effectiveInstances
         } else {
-          monthlyNTD = item.monthlyNTD * effectiveInstances
+          monthlyNTD = (item.monthlyNTD || 0) * effectiveInstances
         }
         const yearWan = monthlyNTD * 12 / 10000
-        return { ...item, key, effectiveInstances, selectedOption, yearWan: Math.round(yearWan * 10) / 10 }
+        const computedNote = item.unitSku
+          ? _unitNote(this.pricingData[item.unitSku], item.estimatedUsage, item.usageUnit)
+          : null
+        return { ...item, key, effectiveInstances, selectedOption, yearWan: Math.round(yearWan * 10) / 10, computedNote }
       })
 
       // bundle dynamic-base 參照用：base item id → 每台月費單價
@@ -249,12 +261,21 @@ createApp({
           const effectiveInstances = svc.adjustable
             ? (this.serviceInstances[key] ?? svc.instances)
             : svc.instances
-          const unitMonthly    = svc.type === 'dynamic-base'
-            ? (baseUnitPrice[svc.baseRef] || 0)
-            : (svc.monthlyNTD || 0)
+          let unitMonthly
+          if (svc.type === 'dynamic-base') {
+            unitMonthly = baseUnitPrice[svc.baseRef] || 0
+          } else if (svc.unitSku) {
+            const unitPrice = this.pricingData[svc.unitSku] ?? (svc.monthlyNTD / (svc.estimatedUsage || 1))
+            unitMonthly = unitPrice * (svc.estimatedUsage || 1)
+          } else {
+            unitMonthly = svc.monthlyNTD || 0
+          }
           const monthlyNTD     = svcChecked ? unitMonthly * effectiveInstances : 0
           const yearWan        = monthlyNTD * 12 / 10000
-          return { ...svc, key, svcChecked, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10 }
+          const computedNote   = svc.unitSku
+            ? _unitNote(this.pricingData[svc.unitSku], svc.estimatedUsage, svc.usageUnit)
+            : null
+          return { ...svc, key, svcChecked, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10, computedNote }
         })
         const bundleYearWan = items.reduce((s, i) => s + i.yearWan, 0)
         const isExpanded    = !!this.expandedBundles[bundle.id]

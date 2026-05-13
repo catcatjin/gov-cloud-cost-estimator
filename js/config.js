@@ -50,28 +50,30 @@ const AI_QUERY_MAP_Q1 = { a: 1000, b: 50000, c: 200000, d: 2000000, e: 10000000 
 const AI_QUERY_MAP_Q2 = { a: 833,  b: 4167,  c: 41667,  d: 416667,  e: 833333  }
 
 // 雲端服務分區架構：base（固定基礎）、ai（Q8='b' 才顯示）、bundles（可選加購）
-// monthlyNTD 說明：
-//   有 sku 且 sku 在 pricing.js PRICING_SNAPSHOT.prices 中 → 以快照值為準，API 可查時自動覆蓋
-//   有 sku 但 sku 不在 snapshot prices 中                  → 估算值，note 標示估算依據
-//   無 sku                                                 → 估算值，note 標示估算依據
+//
+// 計費欄位說明：
+//   sku          → 月費型：直接對應 pricingData 鍵（TWD/月），API 可查時自動覆蓋
+//   unitSku      → 用量型：對應 pricingData 鍵（TWD/usageUnit），乘以 estimatedUsage 得月費
+//   estimatedUsage / usageUnit → 估算用量，UI 顯示計算公式
+//   monthlyNTD   → 以上均無時的備援月費（估算值）
 const CLOUD_TEMPLATES = {
   S: {
     base: [
       { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 's1', adjustable: true, min: 1, max: 4, instances: 1,
         options: [
           { id: 's1', sku: 'App Service S1',  monthlyNTD: 2340 },  // 快照 2026-05-13
-          { id: 's2', sku: 'App Service S2',  monthlyNTD: 4680 },  // 快照 2026-05-13
-          { id: 's3', sku: 'App Service S3',  monthlyNTD: 9360 },  // 快照 2026-05-13
+          { id: 's2', sku: 'App Service S2',  monthlyNTD: 4680 },
+          { id: 's3', sku: 'App Service S3',  monthlyNTD: 9360 },
         ],
       },
       { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2, instances: 1,
         options: [
-          { id: 'gp_d2ds', sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 5760 },  // 快照 2026-05-13
-          { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700 },  // 快照 2026-05-13
+          { id: 'gp_d2ds', sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 5760 },
+          { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700 },
         ],
       },
       { id: 'other', label: 'Blob Storage + DNS/SSL', monthlyNTD: 300, instances: 1,
-        note: '估算值：Blob Hot LRS ~100 GB（100 × 0.59 ≈ 59 TWD）+ Azure DNS + SSL 憑證費合計，非 API 可查項目，依實際用量調整' },
+        note: '估算值：Blob Hot LRS ~100 GB（100 × 0.59 ≈ 59 TWD）+ Azure DNS + SSL 憑證費合計，依實際用量調整' },
     ],
     ai: [
       { id: 'openai', label: 'Azure OpenAI（GPT-4o）', type: 'ai-token',
@@ -83,8 +85,9 @@ const CLOUD_TEMPLATES = {
         autoSelect: (answers) => answers.q3 !== 'a',
         notice: '弱點掃描為合規必要項目，屬非 Azure 市場服務，建議另行詢價。市場行情參考：3–8 萬/年',
         items: [
-          { id: 'keyVault', label: 'Key Vault（秘密/憑證管理）', monthlyNTD: 400, instances: 1,
-            note: '估算值：標準層秘密操作量概估（~$14 USD/月），依實際呼叫次數調整' },
+          { id: 'keyVault', label: 'Key Vault（秘密/憑證管理）', instances: 1,
+            unitSku: 'Key Vault Operations', estimatedUsage: 400, usageUnit: '萬次',
+            monthlyNTD: 400 },
         ],
       },
       {
@@ -101,16 +104,18 @@ const CLOUD_TEMPLATES = {
         id: 'dr', label: '異地備援',
         autoSelect: (answers) => answers.q3 === 'c' || answers.q3 === 'd',
         items: [
-          { id: 'grs', label: 'GRS 跨區備份', monthlyNTD: 170, instances: 1,
-            note: '估算值：小型系統 Blob GRS 約為 LRS 費率 2 倍（~100 GB 等級）' },
+          { id: 'grs', label: 'GRS 跨區備份', instances: 1,
+            unitSku: 'Blob Storage Hot GRS GB', estimatedUsage: 144, usageUnit: 'GB',
+            monthlyNTD: 170 },
         ],
       },
       {
         id: 'observe', label: '可觀測性',
         autoSelect: (answers) => answers.q3 !== 'a',
         items: [
-          { id: 'logAnalytics', label: 'Log Analytics（稽核日誌）', monthlyNTD: 300, instances: 1,
-            note: '估算值：每日約 1 GB 日誌攝取量（Pay-per-use，~$2.46 USD/GB），依保留天數與資料量調整' },
+          { id: 'logAnalytics', label: 'Log Analytics（稽核日誌）', instances: 1,
+            unitSku: 'Log Analytics Ingestion GB', estimatedUsage: 4, usageUnit: 'GB',
+            monthlyNTD: 300 },
         ],
       },
     ],
@@ -120,20 +125,21 @@ const CLOUD_TEMPLATES = {
     base: [
       { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 's1', adjustable: true, min: 1, max: 8, instances: 1,
         options: [
-          { id: 's1',   sku: 'App Service S1',   monthlyNTD: 2340 },  // 快照 2026-05-13
-          { id: 's2',   sku: 'App Service S2',   monthlyNTD: 4680 },  // 快照 2026-05-13
-          { id: 'p1v3', sku: 'App Service P1v3', monthlyNTD: 4140 },  // 快照 2026-05-13
+          { id: 's1',   sku: 'App Service S1',   monthlyNTD: 2340 },
+          { id: 's2',   sku: 'App Service S2',   monthlyNTD: 4680 },
+          { id: 'p1v3', sku: 'App Service P1v3', monthlyNTD: 4140 },
         ],
       },
       { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2, instances: 1,
         options: [
-          { id: 'gp_d2ds', sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 5760  },  // 快照 2026-05-13
-          { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700  },  // 快照 2026-05-13
-          { id: 'gp_d8ds', sku: 'PostgreSQL GP D8ds v4', monthlyNTD: 19400 },  // 快照 2026-05-13
+          { id: 'gp_d2ds', sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 5760  },
+          { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700  },
+          { id: 'gp_d8ds', sku: 'PostgreSQL GP D8ds v4', monthlyNTD: 19400 },
         ],
       },
-      { id: 'storage', label: 'Blob Storage（50–500 GB）', monthlyNTD: 800, instances: 1,
-        note: '估算值：儲存費 ~200 GB × 0.59 ≈ 118 TWD，加計讀寫交易費與資料提取費，依實際用量調整' },
+      { id: 'storage', label: 'Blob Storage（50–500 GB）', instances: 1,
+        unitSku: 'Blob Storage Hot LRS GB', estimatedUsage: 200, usageUnit: 'GB',
+        monthlyNTD: 800 },
       { id: 'apim', label: 'API Management', type: 'selectable', defaultOption: 'apim_basic', instances: 1,
         note: '估算值：依 Azure API Management 東亞公布定價，不含於 Azure Retail Prices API 自動更新',
         options: [
@@ -155,8 +161,9 @@ const CLOUD_TEMPLATES = {
         autoSelect: (answers) => answers.q3 !== 'a',
         notice: '弱點掃描為合規必要項目，屬非 Azure 市場服務，建議另行詢價。市場行情參考：8–15 萬/年',
         items: [
-          { id: 'keyVault', label: 'Key Vault（秘密/憑證管理）',     monthlyNTD: 400,  instances: 1,
-            note: '估算值：標準層秘密操作量概估（~$14 USD/月），依實際呼叫次數調整' },
+          { id: 'keyVault', label: 'Key Vault（秘密/憑證管理）', instances: 1,
+            unitSku: 'Key Vault Operations', estimatedUsage: 400, usageUnit: '萬次',
+            monthlyNTD: 400 },
           { id: 'waf',      label: 'WAF（網頁應用防火牆）',          monthlyNTD: 6000, instances: 1,
             note: '估算值：Azure App Gateway WAF v2 固定費，實際依容量單位（CU）與流量調整' },
           { id: 'defender', label: 'Defender for Cloud（威脅偵測）', monthlyNTD: 300,  instances: 1,
@@ -177,16 +184,18 @@ const CLOUD_TEMPLATES = {
         id: 'dr', label: '異地備援',
         autoSelect: (answers) => answers.q3 === 'c' || answers.q3 === 'd' || answers.q7 === 'd',
         items: [
-          { id: 'grs', label: 'GRS 跨區備份', monthlyNTD: 500, instances: 1,
-            note: '估算值：中型系統 Blob GRS 約為 LRS 費率 2 倍（~500 GB 等級）' },
+          { id: 'grs', label: 'GRS 跨區備份', instances: 1,
+            unitSku: 'Blob Storage Hot GRS GB', estimatedUsage: 424, usageUnit: 'GB',
+            monthlyNTD: 500 },
         ],
       },
       {
         id: 'observe', label: '可觀測性',
         autoSelect: (_answers, tier) => tier !== 'S',
         items: [
-          { id: 'logAnalytics', label: 'Log Analytics（稽核日誌）', monthlyNTD: 600, instances: 1,
-            note: '估算值：每日約 2 GB 日誌攝取量（Pay-per-use，~$2.46 USD/GB），依保留天數與資料量調整' },
+          { id: 'logAnalytics', label: 'Log Analytics（稽核日誌）', instances: 1,
+            unitSku: 'Log Analytics Ingestion GB', estimatedUsage: 8, usageUnit: 'GB',
+            monthlyNTD: 600 },
         ],
       },
     ],
@@ -196,21 +205,22 @@ const CLOUD_TEMPLATES = {
     base: [
       { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 'p1v3', adjustable: true, min: 2, max: 12, instances: 2,
         options: [
-          { id: 'p1v3', sku: 'App Service P1v3', monthlyNTD: 4140  },  // 快照 2026-05-13
-          { id: 'p2v3', sku: 'App Service P2v3', monthlyNTD: 8280  },  // 快照 2026-05-13
-          { id: 'p3v3', sku: 'App Service P3v3', monthlyNTD: 16560 },  // 快照 2026-05-13
+          { id: 'p1v3', sku: 'App Service P1v3', monthlyNTD: 4140  },
+          { id: 'p2v3', sku: 'App Service P2v3', monthlyNTD: 8280  },
+          { id: 'p3v3', sku: 'App Service P3v3', monthlyNTD: 16560 },
         ],
       },
       { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d4ds', adjustable: true, min: 1, max: 3, instances: 1,
         options: [
-          { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700  },  // 快照 2026-05-13
-          { id: 'gp_d8ds', sku: 'PostgreSQL GP D8ds v4', monthlyNTD: 19400 },  // 快照 2026-05-13
-          { id: 'gp_e4ds', sku: 'PostgreSQL GP E4ds v4', monthlyNTD: 14000 },  // 快照 2026-05-13
+          { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700  },
+          { id: 'gp_d8ds', sku: 'PostgreSQL GP D8ds v4', monthlyNTD: 19400 },
+          { id: 'gp_e4ds', sku: 'PostgreSQL GP E4ds v4', monthlyNTD: 14000 },
         ],
       },
-      { id: 'storage', label: 'Blob Storage 分層', monthlyNTD: 2500, instances: 1,
-        note: '估算值：大型系統 Hot + Cool 多層儲存（1 TB+ 等級），依實際用量與層級比例調整' },
-      { id: 'cdn',  label: 'Azure CDN / Front Door', monthlyNTD: 4300, instances: 1,
+      { id: 'storage', label: 'Blob Storage 分層', instances: 1,
+        unitSku: 'Blob Storage Hot LRS GB', estimatedUsage: 1000, usageUnit: 'GB',
+        monthlyNTD: 2500 },
+      { id: 'cdn', label: 'Azure CDN / Front Door', monthlyNTD: 4300, instances: 1,
         note: '估算值：Azure Front Door Standard 固定費 + 流量費概估（~$150 USD/月），依流量規模調整' },
       { id: 'apim', label: 'API Management', type: 'selectable', defaultOption: 'apim_standard', instances: 1,
         note: '估算值：依 Azure API Management 東亞公布定價，不含於 Azure Retail Prices API 自動更新',
@@ -233,8 +243,9 @@ const CLOUD_TEMPLATES = {
         autoSelect: (answers) => answers.q3 !== 'a',
         notice: '弱點掃描 + 滲透測試為合規必要項目，屬非 Azure 市場服務，建議另行詢價。市場行情參考：20–40 萬/年',
         items: [
-          { id: 'keyVault', label: 'Key Vault（秘密/憑證管理）',          monthlyNTD: 400,   instances: 1,
-            note: '估算值：標準層秘密操作量概估（~$14 USD/月），依實際呼叫次數調整' },
+          { id: 'keyVault', label: 'Key Vault（秘密/憑證管理）', instances: 1,
+            unitSku: 'Key Vault Operations', estimatedUsage: 400, usageUnit: '萬次',
+            monthlyNTD: 400 },
           { id: 'waf',      label: 'WAF v2（網頁應用防火牆）',            monthlyNTD: 12000, instances: 1,
             note: '估算值：Azure App Gateway WAF v2 高用量，實際依容量單位（CU）與流量調整' },
           { id: 'defender', label: 'Defender for Cloud（威脅偵測）',      monthlyNTD: 3700,  instances: 1,
@@ -259,18 +270,21 @@ const CLOUD_TEMPLATES = {
         items: [
           { id: 'drSync', label: 'DR 即時同步',   monthlyNTD: 4200, instances: 1,
             note: '估算值：跨區 Active Geo-Replication + 同步流量費概估，依架構與資料量調整' },
-          { id: 'grs',    label: 'GRS Blob 備份', monthlyNTD: 2000, instances: 1,
-            note: '估算值：大型系統 Blob GRS 約為 LRS 費率 2 倍（1 TB+ 等級）' },
+          { id: 'grs',    label: 'GRS Blob 備份', instances: 1,
+            unitSku: 'Blob Storage Hot GRS GB', estimatedUsage: 1695, usageUnit: 'GB',
+            monthlyNTD: 2000 },
         ],
       },
       {
         id: 'observe', label: '可觀測性',
         autoSelect: (_answers, tier) => tier !== 'S',
         items: [
-          { id: 'apm',          label: 'Application Insights APM',     monthlyNTD: 3200, instances: 1,
-            note: '估算值：每日約 5 GB 遙測資料 Pay-per-use（~$2.76 USD/GB），依實際遙測量調整' },
-          { id: 'logAnalytics', label: 'Log Analytics（長期 90 天+）', monthlyNTD: 3000, instances: 1,
-            note: '估算值：每日約 3–5 GB 日誌攝取 + 90 天保留，依保留天數與資料量調整' },
+          { id: 'apm',          label: 'Application Insights APM', instances: 1,
+            unitSku: 'App Insights Ingestion GB', estimatedUsage: 36, usageUnit: 'GB',
+            monthlyNTD: 3200 },
+          { id: 'logAnalytics', label: 'Log Analytics（長期 90 天+）', instances: 1,
+            unitSku: 'Log Analytics Ingestion GB', estimatedUsage: 38, usageUnit: 'GB',
+            monthlyNTD: 3000 },
         ],
       },
     ],
