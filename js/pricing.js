@@ -227,8 +227,8 @@ async function fetchAzurePrices() {
   _pricingApiCount = Object.keys(results).length
 
   if (_pricingApiCount > 0) {
-    _pricingData        = { ...PRICING_SNAPSHOT.prices, ...results }
-    _pricingMeta        = { ...PRICING_SNAPSHOT.meta,   ...metaResults }
+    _pricingData        = { ..._pricingData, ...results }
+    _pricingMeta        = { ..._pricingMeta, ...metaResults }
     _pricingSource      = _pricingApiCount === _pricingApiTotal ? 'api' : 'api-partial'
     _pricingLastUpdated = new Date().toISOString().slice(0, 10)
     _mergeAndSaveToLocalStorage(results, metaResults, _pricingLastUpdated, _pricingApiCount, _pricingApiTotal)
