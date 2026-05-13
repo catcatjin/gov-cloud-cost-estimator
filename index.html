@@ -17,9 +17,9 @@
         <span class="pricing-badge"
           :class="pricingSource === 'api' ? 'badge-api' : pricingSource === 'api-partial' ? 'badge-partial' : pricingSource === 'localStorage' ? 'badge-cache' : 'badge-snapshot'">
           <template v-if="pricingSource === 'api'">✓ Azure API</template>
-          <template v-else-if="pricingSource === 'api-partial'">⚠ 部分 API ({{ pricingApiCount }}/{{ pricingApiTotal }})</template>
+          <template v-else-if="pricingSource === 'api-partial'">⚠ 部分 API ({{ pricingApiCount }}/{{ pricingApiTotal }})，其餘使用快取或備援</template>
           <template v-else-if="pricingSource === 'localStorage'">快取</template>
-          <template v-else>快照</template>
+          <template v-else>離線備援</template>
           {{ pricingLastUpdated }}
         </span>
       </div>

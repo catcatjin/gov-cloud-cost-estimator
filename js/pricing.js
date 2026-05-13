@@ -1,5 +1,5 @@
 // Azure Retail Pricing API 呼叫 + 離線費率備援
-// 優先順序：Azure API 即時 → localStorage 上次成功快取 → 內嵌快照
+// 優先順序：Azure API 即時 → localStorage 上次成功快取 → 離線備援
 
 const PRICING_SNAPSHOT = {
   lastUpdated: '2026-05-13',

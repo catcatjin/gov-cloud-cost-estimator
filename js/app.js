@@ -451,10 +451,10 @@ createApp({
       const sourceLabel = this.pricingSource === 'api'
         ? `Azure Retail Pricing API（${this.pricingLastUpdated} 更新）`
         : this.pricingSource === 'api-partial'
-          ? `Azure Retail Pricing API 部分（${this.pricingApiCount}/${this.pricingApiTotal} SKU，${this.pricingLastUpdated} 更新）`
+          ? `Azure Retail Pricing API 部分（${this.pricingApiCount}/${this.pricingApiTotal} SKU，${this.pricingLastUpdated} 更新，其餘使用快取或備援）`
           : this.pricingSource === 'localStorage'
             ? `快取費率（${this.pricingLastUpdated}，上次 API 更新）`
-            : `內建快照（${this.pricingLastUpdated}）`
+            : `離線備援（${this.pricingLastUpdated}）`
 
       const lines = [
         '## 政府資訊系統規模估算',
