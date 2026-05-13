@@ -86,24 +86,26 @@
 
                 <!-- 基礎平台 -->
                 <div class="bundle-section-header">基礎平台（必含）</div>
-                <div v-for="item in cloudBreakdown.baseItems" :key="item.id"
-                  :class="['cloud-item', 'cloud-item-base', { 'cloud-item-selectable': item.type === 'selectable' }]">
-                  <span class="cloud-name">{{ item.label }}</span>
-                  <select v-if="item.type === 'selectable'" class="item-select"
-                    :value="serviceSelections[item.key] ?? item.defaultOption"
-                    @change="setServiceSelection(item.key, $event.target.value)">
-                    <option v-for="opt in item.options" :key="opt.id" :value="opt.id">{{ pricingMeta[opt.sku] || opt.sku }}</option>
-                  </select>
-                  <template v-if="item.adjustable">
-                    <input type="number" class="instance-input"
-                      :value="serviceInstances[item.key] ?? item.instances"
-                      @change="setServiceInstance(item.key, +$event.target.value, item.min, item.max)"
-                      :min="item.min" :max="item.max">
-                    <span class="cloud-count-fixed">台</span>
-                  </template>
-                  <span v-else-if="item.type !== 'selectable'" class="cloud-count-fixed">× {{ item.instances }} 台</span>
-                  <span class="cloud-cost">{{ item.yearWan.toFixed(1) }} 萬/年</span>
-                </div>
+                <template v-for="item in cloudBreakdown.baseItems" :key="item.id">
+                  <div :class="['cloud-item', 'cloud-item-base', { 'cloud-item-selectable': item.type === 'selectable' }]">
+                    <span class="cloud-name">{{ item.label }}</span>
+                    <select v-if="item.type === 'selectable'" class="item-select"
+                      :value="serviceSelections[item.key] ?? item.defaultOption"
+                      @change="setServiceSelection(item.key, $event.target.value)">
+                      <option v-for="opt in item.options" :key="opt.id" :value="opt.id">{{ pricingMeta[opt.sku] || opt.sku }}</option>
+                    </select>
+                    <template v-if="item.adjustable">
+                      <input type="number" class="instance-input"
+                        :value="serviceInstances[item.key] ?? item.instances"
+                        @change="setServiceInstance(item.key, +$event.target.value, item.min, item.max)"
+                        :min="item.min" :max="item.max">
+                      <span class="cloud-count-fixed">台</span>
+                    </template>
+                    <span v-else-if="item.type !== 'selectable'" class="cloud-count-fixed">× {{ item.instances }} 台</span>
+                    <span class="cloud-cost">{{ item.yearWan.toFixed(1) }} 萬/年</span>
+                  </div>
+                  <div v-if="item.note" class="cloud-pricing-note">{{ item.note }}</div>
+                </template>
 
                 <!-- AI 功能 -->
                 <template v-if="cloudBreakdown.aiItems.length > 0">
@@ -116,6 +118,7 @@
                       <span class="cloud-cost">{{ item.yearWan.toFixed(1) }} 萬/年</span>
                     </div>
                     <div v-if="item.pricingNote" class="cloud-pricing-note">{{ item.pricingNote }}</div>
+                    <div v-else-if="item.note" class="cloud-pricing-note">{{ item.note }}</div>
                   </template>
                 </template>
 
