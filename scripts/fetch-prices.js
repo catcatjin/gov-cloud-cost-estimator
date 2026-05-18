@@ -45,7 +45,7 @@ const SKUS = [
   { name: 'API Management Basic',
     filter: "serviceName eq 'API Management' and skuName eq 'Basic' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'API Management Standard',
-    filter: "serviceName eq 'Azure API Management' and skuName eq 'Standard' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    filter: "serviceName eq 'API Management' and skuName eq 'Standard' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'API Management Premium',
     filter: "serviceName eq 'API Management' and skuName eq 'Premium' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   // Azure AI Search
@@ -70,6 +70,10 @@ async function fetchOne(sku) {
   try {
     const url = `${AZURE_API}?$filter=${encodeURIComponent(sku.filter)}&currencyCode=TWD`
     const res  = await fetch(url, { signal: controller.signal })
+    if (!res.ok) {
+      console.warn(`✗ ${sku.name} | HTTP ${res.status}`)
+      return null
+    }
     const data = await res.json()
     if (data.Items && data.Items.length > 0) {
       const item = data.Items[0]
