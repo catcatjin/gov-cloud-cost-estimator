@@ -22,16 +22,6 @@ body {
 .header-title { font-weight: 700; font-size: 15px; }
 .header-pricing { display: flex; align-items: center; gap: 8px; }
 
-.btn-refresh {
-  padding: 5px 12px;
-  border: 1px solid #cbd5e0;
-  border-radius: 4px;
-  background: #fff;
-  cursor: pointer;
-  font-size: 12px;
-}
-.btn-refresh:hover { background: #f7fafc; }
-.btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .pricing-badge {
   font-size: 11px;
@@ -40,7 +30,6 @@ body {
   font-weight: 600;
 }
 .badge-api      { background: #c6f6d5; color: #276749; }
-.badge-partial  { background: #bee3f8; color: #2a69ac; }
 .badge-cache    { background: #e9d8fd; color: #553c9a; }
 .badge-snapshot { background: #feebc8; color: #744210; }
 
