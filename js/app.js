@@ -1,7 +1,7 @@
 // Vue 3 Options API
 // 依賴全域變數：WEIGHTS、TIER_DEFAULTS、CLOUD_TEMPLATES、AI_QUERY_MAP_Q1、AI_QUERY_MAP_Q2（config.js）
 //              calcScore、calcTier、calcCosts（calculator.js）
-//              loadPricing、fetchAzurePrices、getPricingStatus（pricing.js）
+//              loadPricing、getPricingStatus（pricing.js）
 
 // 用量計費項目的顯示說明（官方費率 × 估算用量）
 function _unitNote(unitPrice, estimatedUsage, usageUnit) {
@@ -117,11 +117,8 @@ createApp({
       serviceInstances:  {},  // { [bundleId__serviceId | base__serviceId]: number }
       serviceSelections: {},  // { [base__serviceId]: optionId }（selectable 下拉選項）
       expandedBundles:   {},  // { [bundleId]: boolean }
-      pricingSource: 'snapshot',
+      pricingSource: 'unavailable',
       pricingLastUpdated: null,
-      pricingApiCount: 0,
-      pricingApiTotal: 0,
-      pricingLoading: false,
       copyStatus: '',
     }
   },
@@ -180,6 +177,7 @@ createApp({
       return calcAdjustedTotalHigh(this.costs.buildHigh, this.cloudBreakdown.totalWan, this.costs.maintHigh, this.adjustedReserve)
     },
     cloudBreakdown() {
+      if (this.pricingSource === 'unavailable') return null
       if (!this.allAnswered) return null
       const tpl = this.effectiveTemplate
       if (!tpl) return null
@@ -236,10 +234,9 @@ createApp({
           const q         = this.effectiveAiMonthlyQueries
           const unitPrice = this.pricingData[item.sku] || 0.16
           monthlyNTD      = q * item.tokensPerQuery / 1000 * unitPrice
-          const srcLabel  = this.pricingSource === 'api' ? 'Azure API'
-            : this.pricingSource === 'api-partial' ? 'Azure API（部分）'
+          const srcLabel  = this.pricingSource === 'github-pages' ? 'GitHub Actions'
             : this.pricingSource === 'localStorage' ? '快取'
-            : '快照'
+            : '未載入'
           pricingNote     = `NTD ${unitPrice.toFixed(3)}/1K tokens（${srcLabel} ${this.pricingLastUpdated ?? ''}）`
         } else {
           // 有 sku 時優先從 pricingData 取官方價格
@@ -416,20 +413,6 @@ createApp({
       this.expandedBundles = { ...this.expandedBundles, [bundleId]: !this.expandedBundles[bundleId] }
     },
 
-    async refreshPricing() {
-      this.pricingLoading = true
-      try {
-        const result = await fetchAzurePrices()
-        this.pricingSource      = result.pricingSource
-        this.pricingLastUpdated = result.pricingLastUpdated
-        this.pricingData        = result.pricingData
-        this.pricingMeta        = result.pricingMeta
-        this.pricingApiCount    = result.pricingApiCount
-        this.pricingApiTotal    = result.pricingApiTotal
-      } finally {
-        this.pricingLoading = false
-      }
-    },
 
     copyResult() {
       if (!this.allAnswered) return
@@ -447,13 +430,11 @@ createApp({
       const c = this.costs
       if (!c && this.tier !== 'XL') return '（計算錯誤，請重新選擇問卷選項）'
       const now = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })
-      const sourceLabel = this.pricingSource === 'api'
-        ? `Azure Retail Pricing API（${this.pricingLastUpdated} 更新）`
-        : this.pricingSource === 'api-partial'
-          ? `Azure Retail Pricing API 部分（${this.pricingApiCount}/${this.pricingApiTotal} SKU，${this.pricingLastUpdated} 更新，其餘使用快取或備援）`
-          : this.pricingSource === 'localStorage'
-            ? `快取費率（${this.pricingLastUpdated}，上次 API 更新）`
-            : `離線備援（${this.pricingLastUpdated}）`
+      const sourceLabel = this.pricingSource === 'github-pages'
+        ? `GitHub Actions 自動維護（${this.pricingLastUpdated} 更新）`
+        : this.pricingSource === 'localStorage'
+          ? `快取費率（${this.pricingLastUpdated}，上次 GitHub Pages 更新）`
+          : `費率未載入`
 
       const lines = [
         '## 政府資訊系統規模估算',
@@ -557,7 +538,5 @@ createApp({
     this.pricingLastUpdated = status.pricingLastUpdated
     this.pricingData        = status.pricingData
     this.pricingMeta        = status.pricingMeta
-    this.pricingApiCount    = status.pricingApiCount
-    this.pricingApiTotal    = status.pricingApiTotal
   },
 }).mount('#app')
