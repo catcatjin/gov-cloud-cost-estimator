@@ -117,6 +117,11 @@ async function main() {
   const mergedPrices = { ...existing.prices, ...newPrices }
   const mergedMeta   = { ...existing.meta,   ...newMeta   }
 
+  if (successCount === 0) {
+    console.warn('\n警告：所有 SKU 查詢失敗，prices.json 維持原樣未寫入')
+    return
+  }
+
   const output = {
     lastUpdated: new Date().toISOString().slice(0, 10),
     source:      'github-actions',
@@ -126,11 +131,7 @@ async function main() {
   }
 
   fs.writeFileSync(PRICES_PATH, JSON.stringify(output, null, 2) + '\n')
-  if (successCount === 0) {
-    console.warn('\n警告：所有 SKU 查詢失敗，prices.json 保留舊值未更新')
-  } else {
-    console.log(`\n完成：${successCount}/${SKUS.length} SKU 成功更新，prices.json 已寫入`)
-  }
+  console.log(`\n完成：${successCount}/${SKUS.length} SKU 成功更新，prices.json 已寫入`)
 }
 
 main()
