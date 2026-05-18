@@ -11,15 +11,11 @@
     <header class="header">
       <span class="header-title">政府資訊系統規模估算工具 v1.0</span>
       <div class="header-pricing">
-        <button @click="refreshPricing" :disabled="pricingLoading" class="btn-refresh">
-          {{ pricingLoading ? '更新中…' : '更新費率' }}
-        </button>
         <span class="pricing-badge"
-          :class="pricingSource === 'api' ? 'badge-api' : pricingSource === 'api-partial' ? 'badge-partial' : pricingSource === 'localStorage' ? 'badge-cache' : 'badge-snapshot'">
-          <template v-if="pricingSource === 'api'">✓ Azure API</template>
-          <template v-else-if="pricingSource === 'api-partial'">⚠ 部分 API ({{ pricingApiCount }}/{{ pricingApiTotal }})，其餘使用快取或備援</template>
+          :class="pricingSource === 'github-pages' ? 'badge-api' : pricingSource === 'localStorage' ? 'badge-cache' : 'badge-snapshot'">
+          <template v-if="pricingSource === 'github-pages'">✓ GitHub Actions 自動維護</template>
           <template v-else-if="pricingSource === 'localStorage'">快取</template>
-          <template v-else>離線備援</template>
+          <template v-else>⚠ 費率未載入</template>
           {{ pricingLastUpdated }}
         </span>
       </div>
@@ -77,6 +73,11 @@
               <div class="cost-row-top">
                 <span>雲端年費（含 {{ cloudBufferPct }}% 緩衝）</span>
                 <span v-if="costs">{{ costs.isXL ? costs.cloudLow + '–' + costs.cloudHigh + ' 萬（議價）' : (cloudBreakdown ? cloudBreakdown.totalWan.toFixed(1) + ' 萬' : costs.cloudLow + '–' + costs.cloudHigh + ' 萬') }}</span>
+              </div>
+              <div v-if="pricingSource === 'unavailable'" class="pricing-unavailable-notice">
+                ⚠ 費率資料未載入，雲端費用以靜態估算顯示。請前往
+                <a href="https://catcatjin.github.io/gov-cloud-cost-estimator/" target="_blank">GitHub Pages</a>
+                取得最新費率。
               </div>
               <div v-if="cloudBreakdown" class="cloud-breakdown">
 
