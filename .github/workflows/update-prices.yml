@@ -1,0 +1,30 @@
+name: 更新 Azure 費率
+
+on:
+  schedule:
+    - cron: '0 2 1 * *'   # 每月 1 日 UTC 02:00
+  workflow_dispatch:        # 支援手動觸發
+
+jobs:
+  update-prices:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # 允許 commit 回 repo
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 抓取 Azure Retail Prices
+        run: node scripts/fetch-prices.js
+
+      - name: 若費率有更新則 commit 並 push
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add prices.json
+          git diff --staged --quiet || git commit -m "chore: 更新 Azure 費率（$(date +%Y-%m-%d)）"
+          git push
