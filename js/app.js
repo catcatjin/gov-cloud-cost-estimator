@@ -119,6 +119,7 @@ createApp({
       expandedBundles:   {},  // { [bundleId]: boolean }
       pricingSource: 'unavailable',
       pricingLastUpdated: null,
+      optionalAiOff: [],  // 被使用者取消勾選的 optional AI 項目 id
       copyStatus: '',
     }
   },
@@ -226,8 +227,10 @@ createApp({
         }
       }
 
-      // AI 功能（Q8='b' 才包含）
-      const aiItems = hasAI ? tpl.ai.map(item => {
+      // AI 功能（Q8='b' 才包含，optional 項目依使用者勾選決定）
+      const aiItems = hasAI ? tpl.ai.filter(item =>
+        !item.optional || !this.optionalAiOff.includes(item.id)
+      ).map(item => {
         let monthlyNTD = 0
         let pricingNote = null
         if (item.type === 'ai-token') {
@@ -283,9 +286,16 @@ createApp({
       const bundleWan   = bundles.reduce((s, b) => s + b.bundleYearWan, 0)
       const subtotalWan = baseWan + aiWan + bundleWan
       const totalWan    = subtotalWan * (1 + tpl.buffer)
+      // 所有 optional AI 項目（含已取消勾選的），供 UI 渲染 checkbox
+      const optionalAiAll = hasAI ? tpl.ai.filter(item => item.optional).map(item => ({
+        ...item,
+        checked: !this.optionalAiOff.includes(item.id),
+      })) : []
+
       return {
         baseItems,
         aiItems,
+        optionalAiAll,
         bundles,
         isXL,
         subtotalWan: Math.round(subtotalWan * 10) / 10,
@@ -411,6 +421,14 @@ createApp({
 
     toggleBundleExpand(bundleId) {
       this.expandedBundles = { ...this.expandedBundles, [bundleId]: !this.expandedBundles[bundleId] }
+    },
+
+    toggleOptionalAi(id) {
+      if (this.optionalAiOff.includes(id)) {
+        this.optionalAiOff = this.optionalAiOff.filter(x => x !== id)
+      } else {
+        this.optionalAiOff = [...this.optionalAiOff, id]
+      }
     },
 
 

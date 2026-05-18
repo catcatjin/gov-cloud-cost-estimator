@@ -110,9 +110,10 @@
                 </template>
 
                 <!-- AI 功能 -->
-                <template v-if="cloudBreakdown.aiItems.length > 0">
+                <template v-if="cloudBreakdown.aiItems.length > 0 || cloudBreakdown.optionalAiAll.length > 0">
                   <div class="bundle-section-header">AI 功能</div>
-                  <template v-for="item in cloudBreakdown.aiItems" :key="item.id">
+                  <!-- 必含 AI 項目 -->
+                  <template v-for="item in cloudBreakdown.aiItems.filter(i => !i.optional)" :key="item.id">
                     <div class="cloud-item cloud-item-ai">
                       <span class="cloud-name">{{ item.label }}</span>
                       <span v-if="item.type === 'ai-token'" class="cloud-count-fixed">{{ formatQueries(effectiveAiMonthlyQueries) }} 次/月</span>
@@ -121,6 +122,22 @@
                     </div>
                     <div v-if="item.pricingNote" class="cloud-pricing-note">{{ item.pricingNote }}</div>
                     <div v-else-if="item.note" class="cloud-pricing-note">{{ item.note }}</div>
+                  </template>
+                  <!-- 可選 AI 項目（含取消勾選的） -->
+                  <template v-for="item in cloudBreakdown.optionalAiAll" :key="'opt-' + item.id">
+                    <div :class="['cloud-item', 'cloud-item-ai', { 'cloud-item-unchecked': !item.checked }]">
+                      <label class="optional-ai-label">
+                        <input type="checkbox" :checked="item.checked" @change="toggleOptionalAi(item.id)">
+                        <span class="cloud-name">{{ item.label }}</span>
+                      </label>
+                      <span class="cloud-count-fixed">× {{ item.instances }} 台</span>
+                      <span class="cloud-cost">
+                        <template v-if="item.checked">
+                          {{ cloudBreakdown.aiItems.find(i => i.id === item.id)?.yearWan.toFixed(1) }} 萬/年
+                        </template>
+                        <template v-else>— 萬/年</template>
+                      </span>
+                    </div>
                   </template>
                 </template>
 
