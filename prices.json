@@ -45,6 +45,11 @@
     "API Management Standard": "Standard（VNet + SLA 99.95%）",
     "API Management Premium":  "Premium（多區域部署 + 私有端點）",
     "AI Search Basic":         "Basic（AI 搜尋）",
-    "AI Search Standard S1":   "Standard S1（AI 搜尋）"
+    "AI Search Standard S1":   "Standard S1（AI 搜尋）",
+    "Blob Storage Hot LRS GB":    "Hot LRS（本地備援）",
+    "Key Vault Operations":        "Key Vault 操作次數",
+    "Log Analytics Ingestion GB":  "Log Analytics 資料擷取/GB",
+    "App Insights Ingestion GB":   "Application Insights 資料擷取/GB",
+    "Blob Storage Hot GRS GB":     "Hot GRS（異地備援）"
   }
 }
