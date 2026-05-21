@@ -112,6 +112,12 @@ createApp({
         // AI 月查詢量（次/月）
         aiMonthlyQueries: null,
       },
+      // AI/ML 設定器狀態（不參與規模評分，只驅動費用計算）
+      mlConfig: {
+        sources:         [],    // 多選：'llmApi'|'rag'|'fineTune'|'customTraining'|'traditionalML'
+        inferenceType:   null,  // 單選：'apiMetered'|'onlineEndpoint'|'batchInference'|'mixed'
+        retrainingFreq:  null,  // 單選：'none'|'once'|'yearly'|'quarterly'|'monthly'
+      },
       showAdvanced: true,
       showWeights: false,
       pricingData: {},
@@ -147,7 +153,7 @@ createApp({
     },
     costs() {
       if (!this.allAnswered) return null
-      return calcCosts(this.tier, this.overrides)
+      return calcCosts(this.tier, this.mlAdjustedOverrides)
     },
     allAnswered() {
       return Object.values(this.answers).every(v => v !== null)
@@ -308,7 +314,7 @@ createApp({
     },
     effectiveBuild() {
       const t = this.tierDefaults
-      const o = this.overrides
+      const o = this.mlAdjustedOverrides
       const r = t.roles || {}
       return {
         pmCount:   o.pmCount   ?? r.pm    ?? 0,
@@ -323,13 +329,116 @@ createApp({
     },
     effectiveMaint() {
       const t = this.tierDefaults
-      const o = this.overrides
+      const o = this.mlAdjustedOverrides
       const r = t.roles || {}
       return {
         pmLow:  o.maintMonthLow  ?? t.maintMonthLow,
         pmHigh: o.maintMonthHigh ?? t.maintMonthHigh,
         engSal: o.engSal ?? r.engSal ?? 28,
       }
+    },
+
+    // 是否有 AI/ML 功能
+    hasAiMl() {
+      return this.answers.q8 !== null && this.answers.q8 !== 'a'
+    },
+
+    // 依設定器模型來源計算人員/期程加成 Delta
+    mlStaffAdj() {
+      const deltas = this.mlConfig.sources
+        .map(src => (AI_WORKLOAD_TEMPLATES[src] || {}).buildStaffAdj || { engineerDelta: 0, durationDelta: 0 })
+      const sumEng = deltas.reduce((s, d) => s + d.engineerDelta, 0)
+      const sumDur = deltas.reduce((s, d) => s + d.durationDelta, 0)
+      const r = this.tierDefaults.roles || {}
+      return {
+        engineerDelta: Math.min(sumEng, Math.floor((r.engHigh || 4) * 0.5)),
+        durationDelta: Math.min(sumDur, 10),
+      }
+    },
+
+    // 依重訓頻率計算維運人月加成 Delta
+    mlMaintAdj() {
+      if (!this.mlConfig.retrainingFreq) return 0
+      return (RETRAINING_MAINT_ADJ[this.mlConfig.retrainingFreq] || {}).pmMonthDelta || 0
+    },
+
+    // 將 ML 加成套用在 overrides（使用者手動設定的欄位不覆蓋）
+    mlAdjustedOverrides() {
+      const o = { ...this.overrides }
+      if (!this.hasAiMl || this.mlConfig.sources.length === 0) return o
+
+      const t = this.tierDefaults
+      const r = t.roles || {}
+      const { engineerDelta, durationDelta } = this.mlStaffAdj
+      const capEng = Math.ceil((r.engHigh || 4) * 1.5)
+
+      if (engineerDelta > 0) {
+        if (o.engCountLow  === null) o.engCountLow  = Math.min((r.engLow  || 1) + engineerDelta, capEng)
+        if (o.engCountHigh === null) o.engCountHigh = Math.min((r.engHigh || 1) + engineerDelta, capEng)
+      }
+      if (durationDelta > 0) {
+        if (o.durationLow  === null) o.durationLow  = Math.min((t.durationLow  || 6)  + durationDelta, 18)
+        if (o.durationHigh === null) o.durationHigh = Math.min((t.durationHigh || 12) + durationDelta, 18)
+      }
+
+      const aiMaintAdj = 0.2
+      const ragAdj = this.mlConfig.sources.includes('rag') ? 0.15 : 0
+      const totalMaintAdj = aiMaintAdj + ragAdj + this.mlMaintAdj
+      if (o.maintMonthLow  === null) o.maintMonthLow  = +((t.maintMonthLow  || 0) + totalMaintAdj).toFixed(2)
+      if (o.maintMonthHigh === null) o.maintMonthHigh = +((t.maintMonthHigh || 0) + totalMaintAdj + 0.1).toFixed(2)
+
+      return o
+    },
+
+    // 設定器模型來源對應的最低 Q8 等級（用於 Q8 同步規則）
+    mlSourceQ8Level() {
+      const SOURCE_MIN = { llmApi: 'b', rag: 'c', fineTune: 'd', traditionalML: 'd', customTraining: 'e' }
+      const ORDER = ['a', 'b', 'c', 'd', 'e']
+      if (this.mlConfig.sources.length === 0) return null
+      return this.mlConfig.sources
+        .map(s => SOURCE_MIN[s] || 'b')
+        .reduce((max, lvl) => ORDER.indexOf(lvl) > ORDER.indexOf(max) ? lvl : max, 'b')
+    },
+
+    // 靜態選項列表（供 UI 渲染 AI/ML 設定器）
+    mlSourceOptions() {
+      return [
+        { key: 'llmApi',        label: 'LLM API（呼叫現成 API，如 Azure OpenAI）' },
+        { key: 'rag',           label: 'RAG / 知識庫（向量搜尋 + LLM 組合）' },
+        { key: 'fineTune',      label: 'fine-tune（微調現有模型）' },
+        { key: 'customTraining',label: '自訓練模型（從頭訓練）' },
+        { key: 'traditionalML', label: '傳統 ML / 預測模型（如分類、迴歸）' },
+      ]
+    },
+    mlInferenceOptions() {
+      return [
+        { key: 'apiMetered',     label: 'API 計量（按 token 或呼叫次數計費）' },
+        { key: 'onlineEndpoint', label: '常駐 endpoint（GPU VM 長跑）' },
+        { key: 'batchInference', label: '批次推論（排程觸發，閒置零成本）' },
+        { key: 'mixed',          label: '混合（常駐 + 批次並用）' },
+      ]
+    },
+    mlRetrainingOptions() {
+      return [
+        { key: 'none',      label: '無（一次訓練後不重訓）' },
+        { key: 'once',      label: '一次性（專案期間訓練一次）' },
+        { key: 'yearly',    label: '每年重訓' },
+        { key: 'quarterly', label: '每季重訓' },
+        { key: 'monthly',   label: '每月重訓' },
+      ]
+    },
+
+    // 彙整所有選取來源的 buildPackages（用於建置費說明）
+    mlBuildPackages() {
+      return this.mlConfig.sources.flatMap(src =>
+        (AI_WORKLOAD_TEMPLATES[src] || {}).buildPackages || []
+      )
+    },
+    // 彙整所有首次訓練工時說明（非 null 的）
+    mlBuildOneTimeNotes() {
+      return this.mlConfig.sources
+        .map(src => (AI_WORKLOAD_TEMPLATES[src] || {}).buildOneTimeNote)
+        .filter(Boolean)
     },
   },
 
@@ -538,6 +647,18 @@ createApp({
   },
 
   watch: {
+    // 設定器模型來源改變時，自動將 Q8 升級至最高風險等級（不降級）
+    'mlConfig.sources': {
+      handler() {
+        const level = this.mlSourceQ8Level
+        if (!level) return
+        const ORDER = ['a', 'b', 'c', 'd', 'e']
+        if (ORDER.indexOf(this.answers.q8 || 'a') < ORDER.indexOf(level)) {
+          this.answers.q8 = level
+        }
+      },
+      deep: true,
+    },
     tier(newTier, oldTier) {
       if (newTier !== oldTier && this.allAnswered) {
         this.serviceInstances  = {}
