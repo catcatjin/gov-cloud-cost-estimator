@@ -1,7 +1,7 @@
 // Vue 3 Options API
 // 依賴全域變數：WEIGHTS、TIER_DEFAULTS、CLOUD_TEMPLATES、AI_QUERY_MAP_Q1、AI_QUERY_MAP_Q2（config.js）
 //              calcScore、calcTier、calcCosts（calculator.js）
-//              loadPricing、getPricingStatus（pricing.js）
+//              loadPricingSync、loadPricingFetch、getPricingStatus（pricing.js）
 
 // 用量計費項目的顯示說明（官方費率 × 估算用量）
 function _unitNote(unitPrice, estimatedUsage, usageUnit) {
@@ -550,8 +550,17 @@ createApp({
   },
 
   async mounted() {
-    await loadPricing()
-    const status = getPricingStatus()
+    // 立即從 localStorage 讀取（同步），讓 cloudBreakdown 不必等網路
+    loadPricingSync()
+    let status = getPricingStatus()
+    this.pricingSource      = status.pricingSource
+    this.pricingLastUpdated = status.pricingLastUpdated
+    this.pricingData        = status.pricingData
+    this.pricingMeta        = status.pricingMeta
+
+    // 背景抓取最新 prices.json，完成後再更新一次
+    await loadPricingFetch()
+    status = getPricingStatus()
     this.pricingSource      = status.pricingSource
     this.pricingLastUpdated = status.pricingLastUpdated
     this.pricingData        = status.pricingData

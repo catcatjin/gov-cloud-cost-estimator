@@ -9,9 +9,13 @@ let _pricingMeta        = {}
 let _pricingSource      = 'unavailable'
 let _pricingLastUpdated = null
 
-// 工具啟動時呼叫：先載入 localStorage 快取，再嘗試抓取 prices.json
-async function loadPricing() {
+// 同步載入 localStorage 快取（立即可用，不等網路）
+function loadPricingSync() {
   _loadFromLocalStorage()
+}
+
+// 非同步抓取 prices.json（背景更新）
+async function loadPricingFetch() {
   await _fetchPricesJson()
 }
 

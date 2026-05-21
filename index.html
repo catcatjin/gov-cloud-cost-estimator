@@ -218,7 +218,8 @@
             <div class="cost-row cost-total" v-if="costs && !costs.isXL">
               <div class="cost-row-top">
                 <span>一年期總費</span>
-                <span>{{ fmt(adjustedTotalLow) }}–{{ fmt(adjustedTotalHigh) }} 萬</span>
+                <span v-if="adjustedTotalLow != null">{{ fmt(adjustedTotalLow) }}–{{ fmt(adjustedTotalHigh) }} 萬</span>
+                <span v-else>{{ fmt(costs.totalLow) }}–{{ fmt(costs.totalHigh) }} 萬（靜態估算）</span>
               </div>
             </div>
           </div>
