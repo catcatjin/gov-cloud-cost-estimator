@@ -495,3 +495,10 @@ main.main-layout, .main-layout {
 .ml-config-note    { font-size: 0.82em; color: #888; margin-bottom: 10px; }
 .ml-section-label  { font-size: 0.88em; font-weight: 600; color: #555; margin-bottom: 6px; }
 .ml-sync-hint      { font-size: 0.85em; color: #888; margin-top: 8px; }
+
+/* 建置費工作包說明 */
+.build-packages-section { margin-top: 8px; padding: 8px 10px; background: #f8f9ff; border-radius: 6px; }
+.build-packages-title   { font-size: 0.82em; color: #555; margin-bottom: 4px; }
+.build-packages-list    { display: flex; flex-wrap: wrap; gap: 4px; }
+.build-package-tag      { font-size: 0.78em; color: #444; background: #e8eaff; padding: 2px 7px; border-radius: 10px; }
+.build-onetime-note     { font-size: 0.8em; color: #6366f1; margin-top: 6px; }

@@ -112,6 +112,18 @@
                 + {{ effectiveBuild.engLow === effectiveBuild.engHigh ? effectiveBuild.engLow : effectiveBuild.engLow + '–' + effectiveBuild.engHigh }} 工程師 × {{ effectiveBuild.engSal }}萬
                 × {{ effectiveBuild.durLow }}–{{ effectiveBuild.durHigh }} 月
               </div>
+              <!-- AI/ML 建置工作包說明（不逐項報價，僅說明已含範疇） -->
+              <template v-if="hasAiMl && mlBuildPackages.length > 0">
+                <div class="build-packages-section">
+                  <div class="build-packages-title">已含 AI/ML 建置工作範疇：</div>
+                  <div class="build-packages-list">
+                    <span v-for="pkg in mlBuildPackages" :key="pkg" class="build-package-tag">✓ {{ pkg }}</span>
+                  </div>
+                  <div v-for="note in mlBuildOneTimeNotes" :key="note" class="build-onetime-note">
+                    📌 {{ note }}
+                  </div>
+                </div>
+              </template>
             </div>
             <div class="cost-row cloud-row">
               <div class="cost-row-top">
