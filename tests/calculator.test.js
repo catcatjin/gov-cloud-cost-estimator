@@ -106,7 +106,9 @@ ML_SOURCES.forEach(src => {
     const t = AI_WORKLOAD_TEMPLATES[src]
     if (!t) throw new Error('template 不存在')
     if (!Array.isArray(t.buildPackages)) throw new Error('buildPackages 應為陣列')
+    if (t.buildPackages.length === 0) throw new Error(`${src}.buildPackages 不應為空陣列`)
     if (!Array.isArray(t.cloudItems))   throw new Error('cloudItems 應為陣列')
+    if (t.cloudItems.length === 0)    throw new Error(`${src}.cloudItems 不應為空陣列`)
     if (typeof t.buildStaffAdj.engineerDelta !== 'number') throw new Error('engineerDelta 應為數字')
     if (typeof t.buildStaffAdj.durationDelta !== 'number') throw new Error('durationDelta 應為數字')
   })
@@ -127,20 +129,27 @@ test('RETRAINING_MAINT_ADJ 鍵值完整', () => {
 })
 
 // ML 加成邊界測試（純函式模擬）
-test('engineerDelta 加總後套用上限（engHigh=6, cap=3）', () => {
-  // customTraining(+2) + fineTune(+1) + traditionalML(+1) = +4，cap=floor(6*0.5)=3
+test('engineerDelta: 多來源加總超出上限時被截斷', () => {
+  // customTraining(+2) + fineTune(+1) + traditionalML(+1) = +4
+  // tier L: engHigh=6, cap=floor(6*0.5)=3
+  // 4 > 3，所以 min(4,3) 應 < sumEng (cap 確實生效)
   const sources = ['customTraining', 'fineTune', 'traditionalML']
   const deltas = sources.map(s => AI_WORKLOAD_TEMPLATES[s].buildStaffAdj)
-  const sumEng = deltas.reduce((s, d) => s + d.engineerDelta, 0)
-  const capEng = Math.floor(6 * 0.5)  // tier L: engHigh=6
-  expect(Math.min(sumEng, capEng)).toBe(3)
+  const sumEng = deltas.reduce((s, d) => s + d.engineerDelta, 0)  // 4
+  const capEng = Math.floor(6 * 0.5)                               // 3 (from TIERS.l.engHigh)
+  if (sumEng <= capEng) throw new Error(`sumEng(${sumEng}) 應超出 capEng(${capEng}) 才能測試截斷`)
+  expect(Math.min(sumEng, capEng)).toBe(capEng)                    // cap 截斷結果等於 cap
 })
 
-test('durationDelta 加總不超過上限 10', () => {
+test('durationDelta: 多來源加總在上限內保持原值', () => {
+  // customTraining(+2) + fineTune(+1) + traditionalML(+1) = +4 < cap(10)
+  // 加總後不超限，結果應等於原始加總
   const sources = ['customTraining', 'fineTune', 'traditionalML']
   const deltas = sources.map(s => AI_WORKLOAD_TEMPLATES[s].buildStaffAdj)
-  const sumDur = deltas.reduce((s, d) => s + d.durationDelta, 0)  // 2+1+1=4
-  expect(Math.min(sumDur, 10)).toBe(4)
+  const sumDur = deltas.reduce((s, d) => s + d.durationDelta, 0)  // 4
+  const capDur = 10
+  if (sumDur >= capDur) throw new Error(`sumDur(${sumDur}) 應小於 capDur(${capDur}) 才能測試未截斷`)
+  expect(Math.min(sumDur, capDur)).toBe(sumDur)                    // 結果不變
 })
 
 console.log(`\n結果：${passed} 通過，${failed} 失敗`)
