@@ -236,8 +236,12 @@ createApp({
         }
       }
 
-      // 先初始化 workloadIds，供 aiItems 去重使用
-      const workloadIds = new Set()
+      // 預先收集 ML workload 的 item IDs，用於去重 CLOUD_TEMPLATES.ai 舊版項目
+      const workloadIds = this.hasAiMl
+        ? new Set(this.mlConfig.sources.flatMap(src =>
+            (AI_WORKLOAD_TEMPLATES[src]?.cloudItems || []).map(i => i.id)
+          ))
+        : new Set()
 
       // AI 功能（Q8 非 'a' 才包含，optional 項目依使用者勾選決定，排除已由 AI_WORKLOAD_TEMPLATES 提供的項目）
       const aiItems = hasAI ? tpl.ai.filter(item =>
@@ -270,7 +274,6 @@ createApp({
         const tpl2 = AI_WORKLOAD_TEMPLATES[src]
         if (!tpl2) return []
         return (tpl2.cloudItems || []).map(item => {
-          workloadIds.add(item.id)
           let monthlyNTD = 0
           if (item.type === 'ai-token') {
             const q = this.effectiveAiMonthlyQueries
