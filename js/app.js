@@ -377,8 +377,9 @@ createApp({
         if (o.engCountHigh === null) o.engCountHigh = Math.min((r.engHigh || 1) + engineerDelta, capEng)
       }
       if (durationDelta > 0) {
-        if (o.durationLow  === null) o.durationLow  = Math.min((t.durationLow  || 6)  + durationDelta, 18)
-        if (o.durationHigh === null) o.durationHigh = Math.min((t.durationHigh || 12) + durationDelta, 18)
+        const durCap = Math.max(t.durationHigh || 12, 18)
+        if (o.durationLow  === null) o.durationLow  = Math.min((t.durationLow  || 6)  + durationDelta, durCap)
+        if (o.durationHigh === null) o.durationHigh = Math.min((t.durationHigh || 12) + durationDelta, durCap)
       }
 
       const aiMaintAdj = 0.2
