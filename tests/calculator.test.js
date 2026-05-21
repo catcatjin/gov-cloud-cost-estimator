@@ -95,5 +95,53 @@ test('engSal 覆蓋 30 → S buildLow = (1×35+1×30)×3 = 195', () =>
 test('null override 仍使用預設值 → S buildLow = 189', () =>
   expect(calcCosts('S', { durationLow: null }).buildLow).toBeCloseTo(189))
 
+// ── AI_WORKLOAD_TEMPLATES 結構驗證 ──────────────────────────────────────────
+const {
+  AI_WORKLOAD_TEMPLATES, INFERENCE_ITEMS, RETRAINING_CLOUD, RETRAINING_MAINT_ADJ
+} = require('../js/config.js')
+
+const ML_SOURCES = ['llmApi', 'rag', 'fineTune', 'customTraining', 'traditionalML']
+ML_SOURCES.forEach(src => {
+  test(`AI_WORKLOAD_TEMPLATES.${src} 結構完整`, () => {
+    const t = AI_WORKLOAD_TEMPLATES[src]
+    if (!t) throw new Error('template 不存在')
+    if (!Array.isArray(t.buildPackages)) throw new Error('buildPackages 應為陣列')
+    if (!Array.isArray(t.cloudItems))   throw new Error('cloudItems 應為陣列')
+    if (typeof t.buildStaffAdj.engineerDelta !== 'number') throw new Error('engineerDelta 應為數字')
+    if (typeof t.buildStaffAdj.durationDelta !== 'number') throw new Error('durationDelta 應為數字')
+  })
+})
+
+test('RETRAINING_CLOUD 鍵值完整', () => {
+  const keys = ['none','once','yearly','quarterly','monthly']
+  for (const k of keys) {
+    if (typeof RETRAINING_CLOUD[k].monthlyNTD !== 'number') throw new Error(`RETRAINING_CLOUD.${k}.monthlyNTD 應為數字`)
+  }
+})
+
+test('RETRAINING_MAINT_ADJ 鍵值完整', () => {
+  const keys = ['none','once','yearly','quarterly','monthly']
+  for (const k of keys) {
+    if (typeof RETRAINING_MAINT_ADJ[k].pmMonthDelta !== 'number') throw new Error(`RETRAINING_MAINT_ADJ.${k}.pmMonthDelta 應為數字`)
+  }
+})
+
+// ML 加成邊界測試（純函式模擬）
+test('engineerDelta 加總後套用上限（engHigh=6, cap=3）', () => {
+  // customTraining(+2) + fineTune(+1) + traditionalML(+1) = +4，cap=floor(6*0.5)=3
+  const sources = ['customTraining', 'fineTune', 'traditionalML']
+  const deltas = sources.map(s => AI_WORKLOAD_TEMPLATES[s].buildStaffAdj)
+  const sumEng = deltas.reduce((s, d) => s + d.engineerDelta, 0)
+  const capEng = Math.floor(6 * 0.5)  // tier L: engHigh=6
+  expect(Math.min(sumEng, capEng)).toBe(3)
+})
+
+test('durationDelta 加總不超過上限 10', () => {
+  const sources = ['customTraining', 'fineTune', 'traditionalML']
+  const deltas = sources.map(s => AI_WORKLOAD_TEMPLATES[s].buildStaffAdj)
+  const sumDur = deltas.reduce((s, d) => s + d.durationDelta, 0)  // 2+1+1=4
+  expect(Math.min(sumDur, 10)).toBe(4)
+})
+
 console.log(`\n結果：${passed} 通過，${failed} 失敗`)
 if (failed > 0) process.exit(1)
