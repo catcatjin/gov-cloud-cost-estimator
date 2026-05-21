@@ -191,7 +191,7 @@ createApp({
       if (!this.allAnswered) return null
       const tpl = this.effectiveTemplate
       if (!tpl) return null
-      const hasAI = this.answers.q8 === 'b'
+      const hasAI = this.answers.q8 !== 'a' && this.answers.q8 !== null
       const isXL  = this.tier === 'XL'
 
       // 基礎平台
@@ -236,9 +236,13 @@ createApp({
         }
       }
 
-      // AI 功能（Q8='b' 才包含，optional 項目依使用者勾選決定）
+      // 先初始化 workloadIds，供 aiItems 去重使用
+      const workloadIds = new Set()
+
+      // AI 功能（Q8 非 'a' 才包含，optional 項目依使用者勾選決定，排除已由 AI_WORKLOAD_TEMPLATES 提供的項目）
       const aiItems = hasAI ? tpl.ai.filter(item =>
-        !item.optional || !this.optionalAiOff.includes(item.id)
+        (!item.optional || !this.optionalAiOff.includes(item.id)) &&
+        !workloadIds.has(item.id)   // 排除已由 AI_WORKLOAD_TEMPLATES 提供的項目
       ).map(item => {
         let monthlyNTD = 0
         let pricingNote = null
@@ -260,6 +264,57 @@ createApp({
         const yearWan = monthlyNTD * 12 / 10000
         return { ...item, yearWan: Math.round(yearWan * 10) / 10, pricingNote }
       }) : []
+
+      // ML 工作負載雲端費（從 AI_WORKLOAD_TEMPLATES，排除首次訓練工時）
+      const workloadAiItems = this.hasAiMl ? this.mlConfig.sources.flatMap(src => {
+        const tpl2 = AI_WORKLOAD_TEMPLATES[src]
+        if (!tpl2) return []
+        return (tpl2.cloudItems || []).map(item => {
+          workloadIds.add(item.id)
+          let monthlyNTD = 0
+          if (item.type === 'ai-token') {
+            const q = this.effectiveAiMonthlyQueries
+            const unitPrice = this.pricingData[item.sku] || 0.16
+            monthlyNTD = q * item.tokensPerQuery / 1000 * unitPrice
+          } else {
+            monthlyNTD = item.sku
+              ? (this.pricingData[item.sku] || item.monthlyNTD || 0)
+              : (item.monthlyNTD || 0)
+          }
+          const yearWan = monthlyNTD * 12 / 10000
+          return { ...item, yearWan: Math.round(yearWan * 10) / 10 }
+        })
+      }) : []
+
+      // 推論費（API 計量已含於 llmApi/rag 的 cloudItems，不重複）
+      const inferenceItems = []
+      if (this.hasAiMl && this.mlConfig.inferenceType && this.mlConfig.inferenceType !== 'apiMetered') {
+        const types = this.mlConfig.inferenceType === 'mixed'
+          ? ['onlineEndpoint', 'batchInference']
+          : [this.mlConfig.inferenceType]
+        for (const t of types) {
+          const item = INFERENCE_ITEMS[t]
+          if (!item) continue
+          const monthlyNTD = item.sku
+            ? (this.pricingData[item.sku] || item.monthlyNTD || item.estimatedMonthlyNTD || 0)
+            : (item.estimatedMonthlyNTD || 0)
+          inferenceItems.push({ ...item, yearWan: Math.round(monthlyNTD * 12 / 10000 * 10) / 10 })
+        }
+      }
+
+      // 重訓 GPU 工時
+      const retrainingCloudItems = []
+      if (this.hasAiMl && this.mlConfig.retrainingFreq) {
+        const r = RETRAINING_CLOUD[this.mlConfig.retrainingFreq]
+        if (r && r.monthlyNTD > 0) {
+          retrainingCloudItems.push({
+            id: 'retrainingCloud', label: r.label,
+            yearWan: Math.round(r.monthlyNTD * 12 / 10000 * 10) / 10,
+          })
+        }
+      }
+
+      const mlItems = [...workloadAiItems, ...inferenceItems, ...retrainingCloudItems]
 
       // 需求包
       const bundles = tpl.bundles.map(bundle => {
@@ -292,8 +347,9 @@ createApp({
 
       const baseWan     = baseItems.reduce((s, i) => s + i.yearWan, 0)
       const aiWan       = aiItems.reduce((s, i) => s + i.yearWan, 0)
+      const mlWan       = mlItems.reduce((s, i) => s + i.yearWan, 0)
       const bundleWan   = bundles.reduce((s, b) => s + b.bundleYearWan, 0)
-      const subtotalWan = baseWan + aiWan + bundleWan
+      const subtotalWan = baseWan + aiWan + mlWan + bundleWan
       const totalWan    = subtotalWan * (1 + tpl.buffer)
       // 所有 optional AI 項目（含已取消勾選的），供 UI 渲染 checkbox
       const optionalAiAll = hasAI ? tpl.ai.filter(item => item.optional).map(item => ({
@@ -304,6 +360,7 @@ createApp({
       return {
         baseItems,
         aiItems,
+        mlItems,
         optionalAiAll,
         bundles,
         isXL,
