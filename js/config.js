@@ -290,7 +290,94 @@ const CLOUD_TEMPLATES = {
   },
 }
 
+// AI/ML 工作負載費用範本（每個 workload 類型的建置包、雲端費、維運費）
+// buildStaffAdj：人員/期程加成（Delta 值，由 mlAdjustedOverrides 套用上限）
+// buildOneTimeNote：首次訓練工時說明（已含於建置費估算，不進年度雲端費）
+const AI_WORKLOAD_TEMPLATES = {
+  llmApi: {
+    buildPackages: ['AI 使用情境設計', 'Prompt 流程設計與調校', 'LLM API 串接', '回答品質測試'],
+    buildOneTimeNote: null,
+    cloudItems: [
+      { id: 'openai', label: 'Azure OpenAI（GPT-4o）', type: 'ai-token',
+        sku: 'OpenAI GPT-4o Input', tokensPerQuery: 2000 },
+    ],
+    maintenanceItems: ['Prompt 維護與品質監控'],
+    buildStaffAdj: { engineerDelta: 0, durationDelta: 0 },
+  },
+  rag: {
+    buildPackages: ['RAG 架構設計', '知識庫資料清理與分塊', 'Embedding 索引建置', 'AI Search 設定', '檢索品質測試與調校'],
+    buildOneTimeNote: null,
+    cloudItems: [
+      { id: 'aiSearch', label: 'Azure AI Search（基本）', sku: 'AI Search Basic', monthlyNTD: 2100 },
+    ],
+    maintenanceItems: ['知識庫定期更新', '索引重建排程'],
+    buildStaffAdj: { engineerDelta: 1, durationDelta: 0 },
+  },
+  fineTune: {
+    buildPackages: ['訓練資料清理與標註', 'fine-tune 流程設計', '首次 fine-tune 執行', '模型評估與驗證', '模型部署流程設計'],
+    buildOneTimeNote: '首次 fine-tune GPU 工時（約 15,000 NTD，已納入建置費估算）',
+    cloudItems: [
+      { id: 'mlWorkspace', label: 'Azure ML Workspace', sku: 'ML Workspace', monthlyNTD: 800 },
+    ],
+    maintenanceItems: ['模型效能監控', '定期重訓（依頻率計費）'],
+    buildStaffAdj: { engineerDelta: 1, durationDelta: 1 },
+  },
+  customTraining: {
+    buildPackages: ['資料蒐集與標註管線', '模型架構設計', '訓練基礎設施建置', '首次完整訓練', '模型評估、A/B 測試', '模型治理與版本管控'],
+    buildOneTimeNote: '首次完整訓練 GPU 工時（約 60,000 NTD，已納入建置費估算）',
+    cloudItems: [
+      { id: 'mlWorkspace',   label: 'Azure ML Workspace',    sku: 'ML Workspace', monthlyNTD: 800 },
+      { id: 'modelRegistry', label: '模型登錄 / 容器儲存',   sku: 'Storage LRS',  monthlyNTD: 500 },
+    ],
+    maintenanceItems: ['模型漂移監控', '定期重訓管線', 'MLOps 維護'],
+    buildStaffAdj: { engineerDelta: 2, durationDelta: 2 },
+  },
+  traditionalML: {
+    buildPackages: ['特徵工程與資料前處理', '模型訓練與超參數調整', '模型驗證與偏差檢測', '模型部署與 API 封裝'],
+    buildOneTimeNote: '首次訓練工時（約 8,000 NTD，已納入建置費估算）',
+    cloudItems: [
+      { id: 'mlWorkspace', label: 'Azure ML Workspace', sku: 'ML Workspace', monthlyNTD: 800 },
+    ],
+    maintenanceItems: ['模型效能監控', '定期重訓（依頻率）'],
+    buildStaffAdj: { engineerDelta: 1, durationDelta: 1 },
+  },
+}
+
+// 推論方式 → 雲端費項目（apiMetered 不需要額外費用，已含在 llmApi/rag cloudItems）
+const INFERENCE_ITEMS = {
+  apiMetered:     null,
+  onlineEndpoint: {
+    id: 'mlEndpoint', label: 'Azure ML Managed Online Endpoint（T4 GPU）',
+    sku: 'NC4as T4 v3', monthlyNTD: 12000,  // 佔位，待 prices.json 補充
+    adjustable: true, min: 1, max: 4,
+  },
+  batchInference: {
+    id: 'mlBatch', label: 'Azure ML Batch Endpoint（Spot GPU）',
+    estimatedMonthlyNTD: 3000,
+  },
+  mixed: null,  // 混合：UI 同時顯示 onlineEndpoint + batchInference，計算上各取其值
+}
+
+// 重訓 GPU 工時 → 進年度雲端費
+const RETRAINING_CLOUD = {
+  none:      { monthlyNTD: 0,     label: '不重訓' },
+  once:      { monthlyNTD: 0,     label: '一次性（已納入建置費）' },
+  yearly:    { monthlyNTD: 1500,  label: '每年重訓 GPU 工時' },
+  quarterly: { monthlyNTD: 4000,  label: '每季重訓 GPU 工時' },
+  monthly:   { monthlyNTD: 10000, label: '每月重訓 GPU 工時' },
+}
+
+// 重訓作業人力 → 進年度維運費
+const RETRAINING_MAINT_ADJ = {
+  none:      { pmMonthDelta: 0,    label: '' },
+  once:      { pmMonthDelta: 0,    label: '' },
+  yearly:    { pmMonthDelta: 0.1,  label: '每年重訓作業人力' },
+  quarterly: { pmMonthDelta: 0.25, label: '每季重訓作業人力' },
+  monthly:   { pmMonthDelta: 0.5,  label: '每月重訓作業人力' },
+}
+
 // Node.js 測試用匯出
 if (typeof module !== 'undefined') {
-  module.exports = { WEIGHTS, TIER_DEFAULTS, CLOUD_TEMPLATES, AI_QUERY_MAP_Q1, AI_QUERY_MAP_Q2 }
+  module.exports = { WEIGHTS, TIER_DEFAULTS, CLOUD_TEMPLATES, AI_QUERY_MAP_Q1, AI_QUERY_MAP_Q2,
+    AI_WORKLOAD_TEMPLATES, INFERENCE_ITEMS, RETRAINING_CLOUD, RETRAINING_MAINT_ADJ }
 }
