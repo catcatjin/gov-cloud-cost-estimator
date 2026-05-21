@@ -335,7 +335,7 @@
                 <span>–</span>
                 <input type="number" v-model.number="overrides.maintMonthHigh" :placeholder="tierDefaults.maintMonthHigh" min="0.1" step="0.1">
               </div>
-              <div class="tweak-row" v-if="answers.q8 === 'b'">
+              <div class="tweak-row" v-if="hasAiMl">
                 <label>月查詢量</label>
                 <input type="number" v-model.number="overrides.aiMonthlyQueries" :placeholder="derivedAiMonthlyQueries" min="1">
                 <span class="tweak-hint">由 Q1/Q2 推算</span>

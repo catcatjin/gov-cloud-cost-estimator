@@ -686,10 +686,27 @@ createApp({
         }
       }
 
-      if (this.answers.q8 === 'b') {
+      if (this.hasAiMl) {
         lines.push('', '【AI 費用】')
         const src = this.overrides.aiMonthlyQueries != null ? '手動設定' : 'Q1/Q2 推算'
         lines.push(`月查詢量：${this.effectiveAiMonthlyQueries.toLocaleString('zh-TW')} 次（${src}）`)
+      }
+
+      if (this.hasAiMl && this.mlConfig.sources.length > 0) {
+        const srcLabels = {
+          llmApi: 'LLM API', rag: 'RAG 知識庫', fineTune: 'Fine-tune',
+          customTraining: '自訓練模型', traditionalML: '傳統 ML'
+        }
+        const inferLabels = {
+          apiMetered: 'API 計量', onlineEndpoint: '常駐 endpoint',
+          batchInference: '批次推論', mixed: '混合推論'
+        }
+        const retLabels = {
+          none: '不重訓', once: '一次性', yearly: '每年', quarterly: '每季', monthly: '每月'
+        }
+        lines.push(`AI/ML 工作負載：${this.mlConfig.sources.map(s => srcLabels[s] || s).join('、')}`)
+        if (this.mlConfig.inferenceType) lines.push(`推論方式：${inferLabels[this.mlConfig.inferenceType] || this.mlConfig.inferenceType}`)
+        if (this.mlConfig.retrainingFreq && this.mlConfig.retrainingFreq !== 'none') lines.push(`訓練頻率：${retLabels[this.mlConfig.retrainingFreq] || this.mlConfig.retrainingFreq}`)
       }
 
       const tweaked = []
