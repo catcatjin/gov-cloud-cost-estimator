@@ -489,3 +489,9 @@ main.main-layout, .main-layout {
   color: #856404;
   font-weight: 600;
 }
+
+/* AI/ML 設定器 */
+.ml-configurator   { border-left: 3px solid #6366f1; }
+.ml-config-note    { font-size: 0.82em; color: #888; margin-bottom: 10px; }
+.ml-section-label  { font-size: 0.88em; font-weight: 600; color: #555; margin-bottom: 6px; }
+.ml-sync-hint      { font-size: 0.85em; color: #888; margin-top: 8px; }

@@ -41,7 +41,6 @@
             </label>
           </div>
         </div>
-      </div>
 
         <!-- AI/ML 設定器（Q8 ≠ 'a' 才顯示） -->
         <div v-if="answers.q8 && answers.q8 !== 'a'" class="question-card ml-configurator">
@@ -80,12 +79,13 @@
             </div>
           </template>
 
-          <!-- Q8 同步提示 -->
-          <div v-if="mlSourceQ8Level && mlSourceQ8Level !== answers.q8"
-            class="ml-sync-hint" style="margin-top:8px; font-size:0.85em; color:#888;">
+          <!-- Q8 同步提示：Q8 已被自動同步至來源要求的等級時顯示 -->
+          <div v-if="mlSourceQ8Level && mlSourceQ8Level === answers.q8 && answers.q8 !== 'a'"
+            class="ml-sync-hint">
             ⚡ 依模型來源，Q8 已自動更新為最高風險等級
           </div>
         </div>
+      </div>
 
       <!-- 右側：結果 -->
       <div class="panel-right">
