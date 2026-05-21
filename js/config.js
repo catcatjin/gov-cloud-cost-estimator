@@ -9,7 +9,7 @@ const WEIGHTS = {
   q5: { a: 0,  b: 5,  c: 15 },                // 金流處理
   q6: { a: 0,  b: 5,  c: 10, d: 25 },         // 尖峰流量倍率
   q7: { a: 0,  b: 3,  c: 10, d: 20 },         // 可用性要求
-  q8: { a: 0,  b: 10 },                       // AI 功能
+  q8: { a: 0, b: 5, c: 10, d: 12, e: 20 },   // AI/ML 功能類型
 }
 
 // roles: 各量級角色組成預設值（pm/arch/engLow/engHigh/pmArchSal/engSal）

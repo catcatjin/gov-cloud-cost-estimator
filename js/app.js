@@ -77,10 +77,13 @@ const QUESTIONS = [
     ],
   },
   {
-    id: 'q8', title: '⑧ AI 功能',
+    id: 'q8', title: '⑧ AI/ML 功能類型',
     options: [
-      { key: 'a', label: '無 AI 功能', shortLabel: '無' },
-      { key: 'b', label: '有 AI 功能（如智慧客服、文件摘要）', shortLabel: '有' },
+      { key: 'a', label: '無 AI/ML 功能',                          shortLabel: '無' },
+      { key: 'b', label: '一般 LLM API（摘要、改寫、客服回答）',    shortLabel: 'LLM API' },
+      { key: 'c', label: 'RAG / 知識庫問答',                        shortLabel: 'RAG' },
+      { key: 'd', label: 'fine-tune 或傳統 ML / 預測模型',          shortLabel: 'Fine-tune/ML' },
+      { key: 'e', label: '自訓練模型或高風險 AI 決策輔助',          shortLabel: '自訓練/高風險' },
     ],
   },
 ]

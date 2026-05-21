@@ -21,12 +21,19 @@ function expect(actual) {
 // ── calcScore ──────────────────────────────────────────────────────────────
 test('全部 null = 0', () => expect(calcScore({ q1:null,q2:null,q3:null,q4:null,q5:null,q6:null,q7:null,q8:null })).toBe(0))
 test('全選最小值 q1=a 其餘 a = 5', () => expect(calcScore({ q1:'a',q2:'a',q3:'a',q4:'a',q5:'a',q6:'a',q7:'a',q8:'a' })).toBe(5))
-test('最大分數 = 200', () => expect(calcScore({ q1:'e',q2:'e',q3:'d',q4:'d',q5:'c',q6:'d',q7:'d',q8:'b' })).toBe(200))
+// q1=50,q2=35,q3=25,q4=20,q5=15,q6=25,q7=20,q8=20 = 210
+test('最大分數 = 210', () => expect(calcScore({ q1:'e',q2:'e',q3:'d',q4:'d',q5:'c',q6:'d',q7:'d',q8:'e' })).toBe(210))
 test('使用自訂 weights q8.b=20', () => {
   const w = JSON.parse(JSON.stringify(global.WEIGHTS))
   w.q8.b = 20
   expect(calcScore({ q1:null,q2:null,q3:null,q4:null,q5:null,q6:null,q7:null,q8:'b' }, w)).toBe(20)
 })
+
+// Q8 新選項評分
+test('q8=b（LLM API）= 5',       () => expect(calcScore({ q1:null,q2:null,q3:null,q4:null,q5:null,q6:null,q7:null,q8:'b' })).toBe(5))
+test('q8=c（RAG）= 10',          () => expect(calcScore({ q1:null,q2:null,q3:null,q4:null,q5:null,q6:null,q7:null,q8:'c' })).toBe(10))
+test('q8=d（fine-tune/ML）= 12', () => expect(calcScore({ q1:null,q2:null,q3:null,q4:null,q5:null,q6:null,q7:null,q8:'d' })).toBe(12))
+test('q8=e（自訓練/高風險）= 20', () => expect(calcScore({ q1:null,q2:null,q3:null,q4:null,q5:null,q6:null,q7:null,q8:'e' })).toBe(20))
 
 // ── calcTier ──────────────────────────────────────────────────────────────
 test('分數 0 → S',   () => expect(calcTier(0)).toBe('S'))
