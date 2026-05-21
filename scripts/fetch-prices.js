@@ -8,23 +8,26 @@ const path = require('path')
 const PRICES_PATH = path.join(__dirname, '..', 'prices.json')
 const AZURE_API   = 'https://prices.azure.com/api/retail/prices'
 
+// hourly: true 表示 Azure API 回傳 TWD/小時，存入前需乘以 730 轉換為 TWD/月
+const HOURS_PER_MONTH = 730
+
 const SKUS = [
-  // App Service
-  { name: 'App Service B1',
+  // App Service（Consumption 計費單位為 1 Hour）
+  { name: 'App Service B1',   hourly: true,
     filter: "serviceName eq 'Azure App Service' and skuName eq 'B1' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'App Service S1',
+  { name: 'App Service S1',   hourly: true,
     filter: "serviceName eq 'Azure App Service' and skuName eq 'S1' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'App Service S2',
+  { name: 'App Service S2',   hourly: true,
     filter: "serviceName eq 'Azure App Service' and skuName eq 'S2' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'App Service S3',
+  { name: 'App Service S3',   hourly: true,
     filter: "serviceName eq 'Azure App Service' and skuName eq 'S3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'App Service P1v3',
+  { name: 'App Service P1v3', hourly: true,
     filter: "serviceName eq 'Azure App Service' and skuName eq 'P1 v3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'App Service P2v3',
+  { name: 'App Service P2v3', hourly: true,
     filter: "serviceName eq 'Azure App Service' and skuName eq 'P2 v3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'App Service P3v3',
+  { name: 'App Service P3v3', hourly: true,
     filter: "serviceName eq 'Azure App Service' and skuName eq 'P3 v3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  // PostgreSQL
+  // PostgreSQL（月計費，API 回傳 TWD/月）
   { name: 'PostgreSQL B1ms',
     filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'B1MS') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'PostgreSQL GP D2ds v4',
@@ -35,20 +38,21 @@ const SKUS = [
     filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'D8ds') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'PostgreSQL GP E4ds v4',
     filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'E4ds') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  // Blob Storage
+  // Blob Storage（TWD/GB/月）
   { name: 'Blob Storage Hot LRS GB',
     filter: "serviceName eq 'Storage' and skuName eq 'LRS' and contains(meterName,'Hot') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  // Azure OpenAI
+  // Azure OpenAI（TWD/1K tokens）
   { name: 'OpenAI GPT-4o Input',
     filter: "serviceName eq 'Azure OpenAI' and contains(skuName,'GPT-4o') and armRegionName eq 'eastasia' and priceType eq 'Consumption' and contains(meterName,'Input')" },
-  // API Management
-  { name: 'API Management Basic',
+  // API Management（月計費固定單元費）
+  // 注意：Consumption priceType 可能回傳錯誤計費維度，需驗證 API 回傳值後再決定是否啟用 hourly: true
+  { name: 'API Management Basic',    hourly: true,
     filter: "serviceName eq 'API Management' and skuName eq 'Basic' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'API Management Standard',
+  { name: 'API Management Standard', hourly: true,
     filter: "serviceName eq 'API Management' and skuName eq 'Standard' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'API Management Premium',
+  { name: 'API Management Premium',  hourly: true,
     filter: "serviceName eq 'API Management' and skuName eq 'Premium' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  // Azure AI Search
+  // Azure AI Search（月計費）
   { name: 'AI Search Basic',
     filter: "serviceName eq 'Search' and skuName eq 'Basic' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'AI Search Standard S1',
@@ -76,9 +80,11 @@ async function fetchOne(sku) {
     }
     const data = await res.json()
     if (data.Items && data.Items.length > 0) {
-      const item = data.Items[0]
-      console.log(`✓ ${sku.name} | ${item.skuName} | ${item.retailPrice} TWD`)
-      return { name: sku.name, price: item.retailPrice, meta: item.skuName }
+      const item  = data.Items[0]
+      // hourly: true 的 SKU 需乘以 HOURS_PER_MONTH 轉換為月費
+      const price = sku.hourly ? Math.round(item.retailPrice * HOURS_PER_MONTH) : item.retailPrice
+      console.log(`✓ ${sku.name} | ${item.skuName} | ${item.retailPrice} TWD${sku.hourly ? ` × ${HOURS_PER_MONTH}h = ${price} TWD/月` : ''}`)
+      return { name: sku.name, price, meta: item.skuName }
     }
     console.warn(`✗ ${sku.name} | 無符合項目`)
     return null

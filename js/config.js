@@ -66,7 +66,7 @@ const CLOUD_TEMPLATES = {
           { id: 's3', sku: 'App Service S3',  monthlyNTD: 9360 },
         ],
       },
-      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2, instances: 1,
+      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 4, instances: 1,
         options: [
           { id: 'gp_d2ds', sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 5760 },
           { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700 },
@@ -130,7 +130,7 @@ const CLOUD_TEMPLATES = {
           { id: 'p1v3', sku: 'App Service P1v3', monthlyNTD: 4140 },
         ],
       },
-      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 2, instances: 1,
+      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 5, instances: 1,
         options: [
           { id: 'gp_d2ds', sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 5760  },
           { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700  },
@@ -209,7 +209,7 @@ const CLOUD_TEMPLATES = {
           { id: 'p3v3', sku: 'App Service P3v3', monthlyNTD: 16560 },
         ],
       },
-      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d4ds', adjustable: true, min: 1, max: 3, instances: 1,
+      { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d4ds', adjustable: true, min: 1, max: 6, instances: 1,
         options: [
           { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700  },
           { id: 'gp_d8ds', sku: 'PostgreSQL GP D8ds v4', monthlyNTD: 19400 },
