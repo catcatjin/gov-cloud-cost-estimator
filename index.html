@@ -189,9 +189,9 @@
                 <template v-if="cloudBreakdown.mlItems && cloudBreakdown.mlItems.length > 0">
                   <div class="bundle-section-header">AI/ML 工作負載</div>
                   <template v-for="item in cloudBreakdown.mlItems" :key="item.id">
-                    <div class="cost-line">
-                      <span class="cost-line-label">{{ item.label }}</span>
-                      <span class="cost-line-value">{{ item.yearWan.toFixed(1) }} 萬/年</span>
+                    <div class="cloud-item">
+                      <span class="cloud-name">{{ item.label }}</span>
+                      <span class="cloud-cost">{{ item.yearWan.toFixed(1) }} 萬/年</span>
                     </div>
                   </template>
                 </template>
