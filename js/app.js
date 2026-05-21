@@ -270,6 +270,8 @@ createApp({
       }) : []
 
       // ML 工作負載雲端費（從 AI_WORKLOAD_TEMPLATES，排除首次訓練工時）
+      // 以 Set 去除跨來源重複的 item.id（例如 mlWorkspace 可能出現在多個來源）
+      const seenWorkloadIds = new Set()
       const workloadAiItems = this.hasAiMl ? this.mlConfig.sources.flatMap(src => {
         const tpl2 = AI_WORKLOAD_TEMPLATES[src]
         if (!tpl2) return []
@@ -287,6 +289,10 @@ createApp({
           const yearWan = monthlyNTD * 12 / 10000
           return { ...item, yearWan: Math.round(yearWan * 10) / 10 }
         })
+      }).filter(item => {
+        if (seenWorkloadIds.has(item.id)) return false
+        seenWorkloadIds.add(item.id)
+        return true
       }) : []
 
       // 推論費（API 計量已含於 llmApi/rag 的 cloudItems，不重複）

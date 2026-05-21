@@ -349,7 +349,6 @@ const INFERENCE_ITEMS = {
   onlineEndpoint: {
     id: 'mlEndpoint', label: 'Azure ML Managed Online Endpoint（T4 GPU）',
     sku: 'NC4as T4 v3', monthlyNTD: 12000,  // 佔位，待 prices.json 補充
-    adjustable: true, min: 1, max: 4,
   },
   batchInference: {
     id: 'mlBatch', label: 'Azure ML Batch Endpoint（Spot GPU）',
