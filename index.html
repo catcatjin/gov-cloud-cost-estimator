@@ -43,6 +43,50 @@
         </div>
       </div>
 
+        <!-- AI/ML 設定器（Q8 ≠ 'a' 才顯示） -->
+        <div v-if="answers.q8 && answers.q8 !== 'a'" class="question-card ml-configurator">
+          <div class="question-title">⚙ AI/ML 工作負載設定</div>
+          <div class="ml-config-note">以下設定不影響規模評分，用於計算 AI/ML 費用明細。</div>
+
+          <!-- ① 模型來源（多選） -->
+          <div class="ml-section-label">① 模型來源（可多選）</div>
+          <div class="options">
+            <label v-for="src in mlSourceOptions" :key="src.key" class="option-label"
+              :class="{ selected: mlConfig.sources.includes(src.key) }">
+              <input type="checkbox" :value="src.key" v-model="mlConfig.sources">
+              <span class="option-text">{{ src.label }}</span>
+            </label>
+          </div>
+
+          <!-- ② 推論方式（單選） -->
+          <div class="ml-section-label" style="margin-top:12px">② 推論方式</div>
+          <div class="options">
+            <label v-for="opt in mlInferenceOptions" :key="opt.key" class="option-label"
+              :class="{ selected: mlConfig.inferenceType === opt.key }">
+              <input type="radio" name="mlInferenceType" :value="opt.key" v-model="mlConfig.inferenceType">
+              <span class="option-text">{{ opt.label }}</span>
+            </label>
+          </div>
+
+          <!-- ③ 訓練頻率（只在選了需要訓練的來源時顯示） -->
+          <template v-if="mlConfig.sources.some(s => ['fineTune','customTraining','traditionalML'].includes(s))">
+            <div class="ml-section-label" style="margin-top:12px">③ 訓練頻率</div>
+            <div class="options">
+              <label v-for="opt in mlRetrainingOptions" :key="opt.key" class="option-label"
+                :class="{ selected: mlConfig.retrainingFreq === opt.key }">
+                <input type="radio" name="mlRetrainingFreq" :value="opt.key" v-model="mlConfig.retrainingFreq">
+                <span class="option-text">{{ opt.label }}</span>
+              </label>
+            </div>
+          </template>
+
+          <!-- Q8 同步提示 -->
+          <div v-if="mlSourceQ8Level && mlSourceQ8Level !== answers.q8"
+            class="ml-sync-hint" style="margin-top:8px; font-size:0.85em; color:#888;">
+            ⚡ 依模型來源，Q8 已自動更新為最高風險等級
+          </div>
+        </div>
+
       <!-- 右側：結果 -->
       <div class="panel-right">
         <div v-if="!allAnswered" class="incomplete-hint">
