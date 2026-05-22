@@ -118,6 +118,7 @@ createApp({
         inferenceType:   null,  // 單選：'apiMetered'|'onlineEndpoint'|'batchInference'|'mixed'
         retrainingFreq:  null,  // 單選：'none'|'once'|'yearly'|'quarterly'|'monthly'
       },
+      trainingHours: {},   // { [src]: number }，使用者調整的首次訓練時數
       _syncingFromSources: false,
       showAdvanced: true,
       showWeights: false,
@@ -465,10 +466,15 @@ createApp({
         (AI_WORKLOAD_TEMPLATES[src] || {}).buildPackages || []
       )
     },
-    // 彙整所有首次訓練工時說明（非 null 的）
-    mlBuildOneTimeNotes() {
+    // 彙整所有首次訓練費用（有 buildOneTimeCost 的來源）
+    mlBuildOneTimeCosts() {
       return this.mlConfig.sources
-        .map(src => (AI_WORKLOAD_TEMPLATES[src] || {}).buildOneTimeNote)
+        .map(src => {
+          const cost = (AI_WORKLOAD_TEMPLATES[src] || {}).buildOneTimeCost
+          if (!cost) return null
+          const hours = this.trainingHours[src] ?? cost.refHours
+          return { src, gpuLabel: cost.gpuLabel, hourlyNTD: cost.hourlyNTD, refHours: cost.refHours, hours, total: cost.hourlyNTD * hours }
+        })
         .filter(Boolean)
     },
   },

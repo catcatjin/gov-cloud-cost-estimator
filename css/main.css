@@ -495,7 +495,8 @@ main.main-layout, .main-layout {
 .build-packages-title   { font-size: 0.82em; color: #555; margin-bottom: 4px; }
 .build-packages-list    { display: flex; flex-wrap: wrap; gap: 4px; }
 .build-package-tag      { font-size: 0.78em; color: #444; background: #e8eaff; padding: 2px 7px; border-radius: 10px; }
-.build-onetime-note     { font-size: 0.8em; color: #6366f1; margin-top: 6px; }
+.build-onetime-note     { font-size: 0.8em; color: #6366f1; margin-top: 6px; line-height: 1.8; }
+.training-hours-input   { width: 52px; padding: 1px 4px; border: 1px solid #a5b4fc; border-radius: 3px; font-size: 0.95em; color: #4338ca; text-align: center; }
 
 /* AI/ML 功能設定器（右側版） */
 .ai-config-panel {

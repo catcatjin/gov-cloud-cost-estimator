@@ -278,11 +278,11 @@ const CLOUD_TEMPLATES = {
 
 // AI/ML 工作負載費用範本（每個 workload 類型的建置包、雲端費、維運費）
 // buildStaffAdj：人員/期程加成（Delta 值，由 mlAdjustedOverrides 套用上限）
-// buildOneTimeNote：首次訓練工時說明（已含於建置費估算，不進年度雲端費）
+// buildOneTimeCost：首次訓練 GPU/CPU 工時估算（已含於建置費，不進年度雲端費）
+// { gpuLabel, hourlyNTD, refHours } — refHours 為參考值，UI 可調整
 const AI_WORKLOAD_TEMPLATES = {
   llmApi: {
     buildPackages: ['AI 使用情境設計', 'Prompt 流程設計與調校', 'LLM API 串接', '回答品質測試'],
-    buildOneTimeNote: null,
     cloudItems: [
       { id: 'openai', label: 'Azure OpenAI（GPT-4o）', type: 'ai-token',
         sku: 'OpenAI GPT-4o Input', tokensPerQuery: 2000 },
@@ -292,7 +292,6 @@ const AI_WORKLOAD_TEMPLATES = {
   },
   rag: {
     buildPackages: ['RAG 架構設計', '知識庫資料清理與分塊', 'Embedding 索引建置', 'AI Search 設定', '檢索品質測試與調校'],
-    buildOneTimeNote: null,
     cloudItems: [
       {
         id: 'aiSearch',
@@ -314,7 +313,7 @@ const AI_WORKLOAD_TEMPLATES = {
   },
   fineTune: {
     buildPackages: ['訓練資料清理與標註', 'fine-tune 流程設計', '首次 fine-tune 執行', '模型評估與驗證', '模型部署流程設計'],
-    buildOneTimeNote: '首次 fine-tune GPU 工時（約 15,000 NTD，已納入建置費估算）',
+    buildOneTimeCost: { gpuLabel: 'T4 GPU（NC4as T4 v3）', hourlyNTD: 500, refHours: 30 },
     cloudItems: [
       { id: 'mlWorkspace', label: 'Azure ML Workspace', sku: 'ML Workspace', monthlyNTD: 800 },
     ],
@@ -323,7 +322,7 @@ const AI_WORKLOAD_TEMPLATES = {
   },
   customTraining: {
     buildPackages: ['資料蒐集與標註管線', '模型架構設計', '訓練基礎設施建置', '首次完整訓練', '模型評估、A/B 測試', '模型治理與版本管控'],
-    buildOneTimeNote: '首次完整訓練 GPU 工時（約 60,000 NTD，已納入建置費估算）',
+    buildOneTimeCost: { gpuLabel: 'A100 GPU（NC24ads A100 v4）', hourlyNTD: 3000, refHours: 20 },
     cloudItems: [
       { id: 'mlWorkspace',   label: 'Azure ML Workspace',    sku: 'ML Workspace', monthlyNTD: 800 },
       { id: 'modelRegistry', label: '模型登錄 / 容器儲存',   sku: 'Storage LRS',  monthlyNTD: 500 },
@@ -333,7 +332,7 @@ const AI_WORKLOAD_TEMPLATES = {
   },
   traditionalML: {
     buildPackages: ['特徵工程與資料前處理', '模型訓練與超參數調整', '模型驗證與偏差檢測', '模型部署與 API 封裝'],
-    buildOneTimeNote: '首次訓練工時（約 8,000 NTD，已納入建置費估算）',
+    buildOneTimeCost: { gpuLabel: 'CPU（D4s v3）', hourlyNTD: 400, refHours: 20 },
     cloudItems: [
       { id: 'mlWorkspace', label: 'Azure ML Workspace', sku: 'ML Workspace', monthlyNTD: 800 },
     ],

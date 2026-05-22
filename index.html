@@ -125,8 +125,13 @@
                   <div class="build-packages-list">
                     <span v-for="pkg in mlBuildPackages" :key="pkg" class="build-package-tag">✓ {{ pkg }}</span>
                   </div>
-                  <div v-for="note in mlBuildOneTimeNotes" :key="note" class="build-onetime-note">
-                    📌 {{ note }}
+                  <div v-for="c in mlBuildOneTimeCosts" :key="c.src" class="build-onetime-note">
+                    📌 {{ c.gpuLabel }} 首次訓練費 = {{ c.hourlyNTD.toLocaleString() }} 元/時 ×
+                    <input type="number" class="training-hours-input"
+                      :value="trainingHours[c.src] ?? c.refHours"
+                      @input="trainingHours[c.src] = +$event.target.value || c.refHours"
+                      min="1" :placeholder="c.refHours">
+                    小時 ≈ {{ c.total.toLocaleString() }} NTD（已納入建置費估算）
                   </div>
                 </div>
               </template>
