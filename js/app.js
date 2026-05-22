@@ -361,7 +361,8 @@ createApp({
       const subtotalWan = baseWan + aiWan + mlWan + bundleWan
       const totalWan    = subtotalWan * (1 + tpl.buffer)
       // 所有 optional AI 項目（含已取消勾選的），供 UI 渲染 checkbox
-      const optionalAiAll = hasAI ? tpl.ai.filter(item => item.optional).map(item => ({
+      // 排除已由 AI_WORKLOAD_TEMPLATES 接管的項目（避免重複顯示）
+      const optionalAiAll = hasAI ? tpl.ai.filter(item => item.optional && !workloadIds.has(item.id)).map(item => ({
         ...item,
         checked: !this.optionalAiOff.includes(item.id),
       })) : []
