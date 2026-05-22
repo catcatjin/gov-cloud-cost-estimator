@@ -75,10 +75,6 @@ const CLOUD_TEMPLATES = {
       { id: 'other', label: 'Blob Storage + DNS/SSL', monthlyNTD: 300, instances: 1,
         note: '估算值：Blob Hot LRS ~100 GB（100 × 0.59 ≈ 59 TWD）+ Azure DNS + SSL 憑證費合計，依實際用量調整' },
     ],
-    ai: [
-      { id: 'openai', label: 'Azure OpenAI（GPT-4o）', type: 'ai-token',
-        sku: 'OpenAI GPT-4o Input', tokensPerQuery: 2000 },
-    ],
     bundles: [
       {
         id: 'security', label: '資安合規',
@@ -148,11 +144,6 @@ const CLOUD_TEMPLATES = {
       },
       { id: 'dns', label: 'DNS', monthlyNTD: 200, instances: 1,
         note: '估算值：Azure DNS 公共區域固定費 + 月查詢量（~$6 USD/月）' },
-    ],
-    ai: [
-      { id: 'openai',   label: 'Azure OpenAI（GPT-4o）',   type: 'ai-token',
-        sku: 'OpenAI GPT-4o Input', tokensPerQuery: 2000 },
-      { id: 'aiSearch', label: 'Azure AI Search（基本）（RAG / 語意搜尋）',  sku: 'AI Search Basic', monthlyNTD: 2100, instances: 1, optional: true },
     ],
     bundles: [
       {
@@ -229,11 +220,6 @@ const CLOUD_TEMPLATES = {
       },
       { id: 'dns', label: 'DNS', monthlyNTD: 200, instances: 1,
         note: '估算值：Azure DNS 公共區域固定費 + 月查詢量（~$6 USD/月）' },
-    ],
-    ai: [
-      { id: 'openai',   label: 'Azure OpenAI（GPT-4o）',       type: 'ai-token',
-        sku: 'OpenAI GPT-4o Input', tokensPerQuery: 2000 },
-      { id: 'aiSearch', label: 'Azure AI Search（標準 S1）（RAG / 語意搜尋）',   sku: 'AI Search Standard S1', monthlyNTD: 6300, instances: 1, optional: true },
     ],
     bundles: [
       {

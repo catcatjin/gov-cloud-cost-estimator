@@ -129,7 +129,6 @@ createApp({
       expandedBundles:   {},  // { [bundleId]: boolean }
       pricingSource: 'unavailable',
       pricingLastUpdated: null,
-      optionalAiOff: [],  // 被使用者取消勾選的 optional AI 項目 id
       copyStatus: '',
     }
   },
@@ -192,7 +191,6 @@ createApp({
       if (!this.allAnswered) return null
       const tpl = this.effectiveTemplate
       if (!tpl) return null
-      const hasAI = this.answers.q8 !== 'a' && this.answers.q8 !== null
       const isXL  = this.tier === 'XL'
 
       // 基礎平台
@@ -236,39 +234,6 @@ createApp({
           baseUnitPrice[item.id] = item.monthlyNTD || 0
         }
       }
-
-      // 預先收集 ML workload 的 item IDs，用於去重 CLOUD_TEMPLATES.ai 舊版項目
-      const workloadIds = this.hasAiMl
-        ? new Set(this.mlConfig.sources.flatMap(src =>
-            (AI_WORKLOAD_TEMPLATES[src]?.cloudItems || []).map(i => i.id)
-          ))
-        : new Set()
-
-      // AI 功能（Q8 非 'a' 才包含，optional 項目依使用者勾選決定，排除已由 AI_WORKLOAD_TEMPLATES 提供的項目）
-      const aiItems = hasAI ? tpl.ai.filter(item =>
-        (!item.optional || !this.optionalAiOff.includes(item.id)) &&
-        !workloadIds.has(item.id)   // 排除已由 AI_WORKLOAD_TEMPLATES 提供的項目
-      ).map(item => {
-        let monthlyNTD = 0
-        let pricingNote = null
-        if (item.type === 'ai-token') {
-          const q         = this.effectiveAiMonthlyQueries
-          const unitPrice = this.pricingData[item.sku] || 0.16
-          monthlyNTD      = q * item.tokensPerQuery / 1000 * unitPrice
-          const srcLabel  = this.pricingSource === 'github-pages' ? 'GitHub Actions'
-            : this.pricingSource === 'localStorage' ? '快取'
-            : '未載入'
-          pricingNote     = `NTD ${unitPrice.toFixed(3)}/1K tokens（${srcLabel} ${this.pricingLastUpdated ?? ''}）`
-        } else {
-          // 有 sku 時優先從 pricingData 取官方價格
-          const unitPrice = item.sku
-            ? (this.pricingData[item.sku] || item.monthlyNTD || 0)
-            : (item.monthlyNTD || 0)
-          monthlyNTD = unitPrice * (item.instances ?? 1)
-        }
-        const yearWan = monthlyNTD * 12 / 10000
-        return { ...item, yearWan: Math.round(yearWan * 10) / 10, pricingNote }
-      }) : []
 
       // ML 工作負載雲端費（從 AI_WORKLOAD_TEMPLATES，排除首次訓練工時）
       // 以 Set 去除跨來源重複的 item.id（例如 mlWorkspace 可能出現在多個來源）
@@ -362,23 +327,14 @@ createApp({
       })
 
       const baseWan     = baseItems.reduce((s, i) => s + i.yearWan, 0)
-      const aiWan       = aiItems.reduce((s, i) => s + i.yearWan, 0)
       const mlWan       = mlItems.reduce((s, i) => s + i.yearWan, 0)
       const bundleWan   = bundles.reduce((s, b) => s + b.bundleYearWan, 0)
-      const subtotalWan = baseWan + aiWan + mlWan + bundleWan
+      const subtotalWan = baseWan + mlWan + bundleWan
       const totalWan    = subtotalWan * (1 + tpl.buffer)
-      // 所有 optional AI 項目（含已取消勾選的），供 UI 渲染 checkbox
-      // 排除已由 AI_WORKLOAD_TEMPLATES 接管的項目（避免重複顯示）
-      const optionalAiAll = hasAI ? tpl.ai.filter(item => item.optional && !workloadIds.has(item.id)).map(item => ({
-        ...item,
-        checked: !this.optionalAiOff.includes(item.id),
-      })) : []
 
       return {
         baseItems,
-        aiItems,
         mlItems,
-        optionalAiAll,
         bundles,
         isXL,
         subtotalWan: Math.round(subtotalWan * 10) / 10,
@@ -610,13 +566,6 @@ createApp({
       this.expandedBundles = { ...this.expandedBundles, [bundleId]: !this.expandedBundles[bundleId] }
     },
 
-    toggleOptionalAi(id) {
-      if (this.optionalAiOff.includes(id)) {
-        this.optionalAiOff = this.optionalAiOff.filter(x => x !== id)
-      } else {
-        this.optionalAiOff = [...this.optionalAiOff, id]
-      }
-    },
 
 
     copyResult() {
