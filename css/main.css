@@ -490,15 +490,109 @@ main.main-layout, .main-layout {
   font-weight: 600;
 }
 
-/* AI/ML 設定器 */
-.ml-configurator   { border-left: 3px solid #6366f1; }
-.ml-config-note    { font-size: 0.82em; color: #888; margin-bottom: 10px; }
-.ml-section-label  { font-size: 0.88em; font-weight: 600; color: #555; margin-bottom: 6px; }
-.ml-sync-hint      { font-size: 0.85em; color: #888; margin-top: 8px; }
-
 /* 建置費工作包說明 */
 .build-packages-section { margin-top: 8px; padding: 8px 10px; background: #f8f9ff; border-radius: 6px; }
 .build-packages-title   { font-size: 0.82em; color: #555; margin-bottom: 4px; }
 .build-packages-list    { display: flex; flex-wrap: wrap; gap: 4px; }
 .build-package-tag      { font-size: 0.78em; color: #444; background: #e8eaff; padding: 2px 7px; border-radius: 10px; }
 .build-onetime-note     { font-size: 0.8em; color: #6366f1; margin-top: 6px; }
+
+/* AI/ML 功能設定器（右側版） */
+.ai-config-panel {
+  border: 1px solid #c5dcf5;
+  border-radius: 6px;
+  background: #f0f7ff;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+.ai-config-header {
+  font-weight: 700;
+  font-size: 11px;
+  color: #1a56db;
+  margin-bottom: 8px;
+}
+.ai-config-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #555;
+  margin: 8px 0 4px;
+}
+.ai-config-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ai-source-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid #dde;
+  background: #fff;
+  cursor: pointer;
+}
+.ai-source-item.ai-source-checked {
+  border-color: #4299e1;
+  background: #ebf8ff;
+}
+.ai-source-label {
+  flex: 1;
+  font-size: 11px;
+  color: #2d3748;
+}
+.ai-query-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 2px 20px;
+  font-size: 11px;
+  color: #718096;
+}
+.ai-query-label { flex-shrink: 0; color: #555; }
+.ai-query-input {
+  width: 80px;
+  padding: 2px 4px;
+  border: 1px solid #cbd5e0;
+  border-radius: 3px;
+  font-size: 11px;
+}
+.ai-query-unit { color: #718096; font-size: 10px; }
+.ai-config-hint {
+  font-size: 10px;
+  color: #805ad5;
+  padding: 4px 6px;
+  background: #faf5ff;
+  border-radius: 3px;
+  margin-top: 4px;
+}
+.ai-config-options {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ai-option-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid #dde;
+  background: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  color: #2d3748;
+}
+.ai-option-item.ai-option-checked {
+  border-color: #4299e1;
+  background: #ebf8ff;
+}
+.ai-sync-hint {
+  font-size: 10px;
+  color: #1a56db;
+  padding: 4px 6px;
+  background: #ebf8ff;
+  border-radius: 3px;
+  margin-top: 6px;
+}
