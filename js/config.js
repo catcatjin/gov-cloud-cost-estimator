@@ -142,8 +142,8 @@ const CLOUD_TEMPLATES = {
         monthlyNTD: 800 },
       { id: 'apim', label: 'API Management', type: 'selectable', defaultOption: 'apim_basic', instances: 1,
         options: [
-          { id: 'apim_basic',    sku: 'API Management Basic',    monthlyNTD: 3100 },
-          { id: 'apim_standard', sku: 'API Management Standard', monthlyNTD: 7800 },
+          { id: 'apim_basic',    label: 'Basic v2',    sku: 'API Management Basic v2',    monthlyNTD: 4727 },
+          { id: 'apim_standard', label: 'Standard v2', sku: 'API Management Standard v2', monthlyNTD: 22058 },
         ],
       },
       { id: 'dns', label: 'DNS', monthlyNTD: 200, instances: 1,
@@ -223,8 +223,8 @@ const CLOUD_TEMPLATES = {
         note: '估算值：Azure Front Door Standard 固定費 + 流量費概估（~$150 USD/月），依流量規模調整' },
       { id: 'apim', label: 'API Management', type: 'selectable', defaultOption: 'apim_standard', instances: 1,
         options: [
-          { id: 'apim_standard', sku: 'API Management Standard', monthlyNTD: 7800  },
-          { id: 'apim_premium',  sku: 'API Management Premium',  monthlyNTD: 30000 },
+          { id: 'apim_standard', label: 'Standard v2', sku: 'API Management Standard v2', monthlyNTD: 22058  },
+          { id: 'apim_premium',  label: 'Premium v2',  sku: 'API Management Premium v2',  monthlyNTD: 88230 },
         ],
       },
       { id: 'dns', label: 'DNS', monthlyNTD: 200, instances: 1,

@@ -150,7 +150,7 @@
                     <select v-if="item.type === 'selectable'" class="item-select"
                       :value="serviceSelections[item.key] ?? item.defaultOption"
                       @change="setServiceSelection(item.key, $event.target.value)">
-                      <option v-for="opt in item.options" :key="opt.id" :value="opt.id">{{ pricingMeta[opt.sku] || opt.sku }}</option>
+                      <option v-for="opt in item.options" :key="opt.id" :value="opt.id">{{ opt.label || pricingMeta[opt.sku] || opt.sku }}</option>
                     </select>
                     <template v-if="item.adjustable">
                       <input type="number" class="instance-input"
