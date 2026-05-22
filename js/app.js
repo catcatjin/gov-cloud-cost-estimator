@@ -278,17 +278,23 @@ createApp({
         if (!tpl2) return []
         return (tpl2.cloudItems || []).map(item => {
           let monthlyNTD = 0
+          let resolvedLabel = item.label
           if (item.type === 'ai-token') {
             const q = this.effectiveAiMonthlyQueries
             const unitPrice = this.pricingData[item.sku] || 0.16
             monthlyNTD = q * item.tokensPerQuery / 1000 * unitPrice
+          } else if (item.skuByTier) {
+            const sku = item.skuByTier[this.tier] ?? item.skuByTier['M']
+            const fallbackNTD = item.monthlyNTDByTier?.[this.tier] ?? item.monthlyNTDByTier?.['M'] ?? 0
+            monthlyNTD = this.pricingData[sku] ?? fallbackNTD
+            resolvedLabel = item.label + (this.tier === 'L' ? '（標準 S1）' : '（基本）')
           } else {
             monthlyNTD = item.sku
               ? (this.pricingData[item.sku] || item.monthlyNTD || 0)
               : (item.monthlyNTD || 0)
           }
           const yearWan = monthlyNTD * 12 / 10000
-          return { ...item, yearWan: Math.round(yearWan * 10) / 10 }
+          return { ...item, label: resolvedLabel, yearWan: Math.round(yearWan * 10) / 10 }
         })
       }).filter(item => {
         if (seenWorkloadIds.has(item.id)) return false

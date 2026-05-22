@@ -308,7 +308,20 @@ const AI_WORKLOAD_TEMPLATES = {
     buildPackages: ['RAG 架構設計', '知識庫資料清理與分塊', 'Embedding 索引建置', 'AI Search 設定', '檢索品質測試與調校'],
     buildOneTimeNote: null,
     cloudItems: [
-      { id: 'aiSearch', label: 'Azure AI Search（基本）', sku: 'AI Search Basic', monthlyNTD: 2100 },
+      {
+        id: 'aiSearch',
+        label: 'Azure AI Search',
+        skuByTier: {
+          S: 'AI Search Basic',
+          M: 'AI Search Basic',
+          L: 'AI Search Standard S1',
+        },
+        monthlyNTDByTier: {
+          S: 2100,
+          M: 2100,
+          L: 6300,
+        },
+      },
     ],
     maintenanceItems: ['知識庫定期更新', '索引重建排程'],
     buildStaffAdj: { engineerDelta: 1, durationDelta: 0 },
