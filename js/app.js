@@ -118,6 +118,7 @@ createApp({
         inferenceType:   null,  // 單選：'apiMetered'|'onlineEndpoint'|'batchInference'|'mixed'
         retrainingFreq:  null,  // 單選：'none'|'once'|'yearly'|'quarterly'|'monthly'
       },
+      _syncingFromSources: false,
       showAdvanced: true,
       showWeights: false,
       pricingData: {},
@@ -732,6 +733,25 @@ createApp({
   },
 
   watch: {
+    'answers.q8'(newQ8) {
+      // sources → Q8 升級觸發的改變，不反向重設，避免覆蓋 sources watcher 的升級結果
+      if (this._syncingFromSources) return
+      // 使用者直接改 Q8 → 重設為該 Q8 的預設 sources（清除舊選項）
+      const defaults = {
+        a: [],
+        b: ['llmApi'],
+        c: ['rag', 'llmApi'],
+        d: ['fineTune'],
+        e: ['customTraining'],
+      }[newQ8] ?? []
+      this.mlConfig.sources = [...defaults]
+      // 若新 sources 不含自有模型，同步清除推論方式與訓練頻率
+      const selfOwned = ['fineTune', 'customTraining', 'traditionalML']
+      if (!defaults.some(s => selfOwned.includes(s))) {
+        this.mlConfig.inferenceType  = null
+        this.mlConfig.retrainingFreq = null
+      }
+    },
     // 設定器模型來源改變時，自動將 Q8 升級至最高風險等級（不降級）
     'mlConfig.sources': {
       handler() {
@@ -739,7 +759,9 @@ createApp({
         if (!level) return
         const ORDER = ['a', 'b', 'c', 'd', 'e']
         if (ORDER.indexOf(this.answers.q8 || 'a') < ORDER.indexOf(level)) {
+          this._syncingFromSources = true
           this.answers.q8 = level
+          this.$nextTick(() => { this._syncingFromSources = false })
         }
       },
       deep: true,
