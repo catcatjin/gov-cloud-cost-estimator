@@ -12,7 +12,7 @@ const AZURE_API   = 'https://prices.azure.com/api/retail/prices'
 const HOURS_PER_MONTH = 730
 
 const SKUS = [
-  // App Service（Consumption 計費單位為 1 Hour）
+  // App Service（Consumption 計費單位為 1 Hour，需 ×730）
   { name: 'App Service B1',   hourly: true,
     filter: "serviceName eq 'Azure App Service' and skuName eq 'B1' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'App Service S1',   hourly: true,
@@ -27,45 +27,45 @@ const SKUS = [
     filter: "serviceName eq 'Azure App Service' and skuName eq 'P2 v3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'App Service P3v3', hourly: true,
     filter: "serviceName eq 'Azure App Service' and skuName eq 'P3 v3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  // PostgreSQL（月計費，API 回傳 TWD/月）
-  { name: 'PostgreSQL B1ms',
-    filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'B1MS') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'PostgreSQL GP D2ds v4',
-    filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'D2ds') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'PostgreSQL GP D4ds v4',
-    filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'D4ds') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'PostgreSQL GP D8ds v4',
-    filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'D8ds') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'PostgreSQL GP E4ds v4',
-    filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(skuName,'E4ds') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  // Blob Storage（TWD/GB/月）
+
+  // PostgreSQL Flexible Server（按 vCore/小時計費，vcores 欄位指定核心數，需 ×vcores×730）
+  // Ddsv4 系列：General Purpose，API 回傳 per-vCore 價格，乘以核心數得月費
+  { name: 'PostgreSQL GP D2ds v4', hourly: true, vcores: 2, meta: 'D2ds v4（General Purpose）',
+    filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(productName,'Ddsv4') and skuName eq '1 vCore' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+  { name: 'PostgreSQL GP D4ds v4', hourly: true, vcores: 4, meta: 'D4ds v4（General Purpose）',
+    filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(productName,'Ddsv4') and skuName eq '1 vCore' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+  { name: 'PostgreSQL GP D8ds v4', hourly: true, vcores: 8, meta: 'D8ds v4（General Purpose）',
+    filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(productName,'Ddsv4') and skuName eq '1 vCore' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+  // Edsv4 系列：Memory Optimized
+  { name: 'PostgreSQL GP E4ds v4', hourly: true, vcores: 4, meta: 'E4ds v4（Memory Optimized）',
+    filter: "serviceName eq 'Azure Database for PostgreSQL' and contains(productName,'Edsv4') and skuName eq '1 vCore' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+
+  // Blob Storage（TWD/GB/月，用量計費，productName 指定為 Blob Storage 避免匹配 ADLS/Files）
   { name: 'Blob Storage Hot LRS GB',
-    filter: "serviceName eq 'Storage' and skuName eq 'LRS' and contains(meterName,'Hot') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  // Azure OpenAI（TWD/1K tokens）
-  { name: 'OpenAI GPT-4o Input',
-    filter: "serviceName eq 'Azure OpenAI' and contains(skuName,'GPT-4o') and armRegionName eq 'eastasia' and priceType eq 'Consumption' and contains(meterName,'Input')" },
-  // API Management（月計費固定單元費）
-  // 注意：Consumption priceType 可能回傳錯誤計費維度，需驗證 API 回傳值後再決定是否啟用 hourly: true
-  { name: 'API Management Basic',    hourly: true,
-    filter: "serviceName eq 'API Management' and skuName eq 'Basic' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'API Management Standard', hourly: true,
-    filter: "serviceName eq 'API Management' and skuName eq 'Standard' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'API Management Premium',  hourly: true,
-    filter: "serviceName eq 'API Management' and skuName eq 'Premium' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  // Azure AI Search（月計費）
-  { name: 'AI Search Basic',
-    filter: "serviceName eq 'Search' and skuName eq 'Basic' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'AI Search Standard S1',
-    filter: "serviceName eq 'Search' and skuName eq 'Standard S1' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    filter: "serviceName eq 'Storage' and productName eq 'Blob Storage' and meterName eq 'Hot LRS Data Stored' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+  { name: 'Blob Storage Hot GRS GB',
+    filter: "serviceName eq 'Storage' and productName eq 'Blob Storage' and meterName eq 'Hot GRS Data Stored' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+
+  // Azure OpenAI：retail prices API 不提供此服務，價格由 prices.json 快照維護（0.16 TWD/1K tokens）
+
+  // API Management v2（計費單位為 1 Hour，需 ×730；eastus 與 southeastasia 同價）
+  { name: 'API Management Basic v2',    hourly: true,
+    filter: "serviceName eq 'API Management' and skuName eq 'Basic v2' and meterName eq 'Basic v2 Unit' and armRegionName eq 'eastus' and priceType eq 'Consumption'" },
+  { name: 'API Management Standard v2', hourly: true,
+    filter: "serviceName eq 'API Management' and skuName eq 'Standard v2' and meterName eq 'Standard v2 Unit' and armRegionName eq 'eastus' and priceType eq 'Consumption'" },
+  { name: 'API Management Premium v2',  hourly: true,
+    filter: "serviceName eq 'API Management' and skuName eq 'Premium v2' and meterName eq 'Premium v2 Unit' and armRegionName eq 'eastus' and priceType eq 'Consumption'" },
+
+  // Azure AI Search：直接用 config.js monthlyNTD（2100/6300）
+
   // 用量計費
   { name: 'Key Vault Operations',
     filter: "serviceName eq 'Key Vault' and contains(meterName,'Operations') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+  // Log Analytics: 使用 Analytics Logs SKU 的 Data Analyzed meter（付費層，72 TWD/GB）
   { name: 'Log Analytics Ingestion GB',
-    filter: "serviceName eq 'Log Analytics' and contains(meterName,'Data Ingestion') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    filter: "serviceName eq 'Log Analytics' and skuName eq 'Analytics Logs' and meterName eq 'Analytics Logs Data Analyzed' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'App Insights Ingestion GB',
     filter: "serviceName eq 'Application Insights' and contains(meterName,'Data') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
-  { name: 'Blob Storage Hot GRS GB',
-    filter: "serviceName eq 'Storage' and skuName eq 'GRS' and contains(meterName,'Hot') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
 ]
 
 async function fetchOne(sku) {
@@ -80,11 +80,19 @@ async function fetchOne(sku) {
     }
     const data = await res.json()
     if (data.Items && data.Items.length > 0) {
-      const item  = data.Items[0]
-      // hourly: true 的 SKU 需乘以 HOURS_PER_MONTH 轉換為月費
-      const price = sku.hourly ? Math.round(item.retailPrice * HOURS_PER_MONTH) : item.retailPrice
-      console.log(`✓ ${sku.name} | ${item.skuName} | ${item.retailPrice} TWD${sku.hourly ? ` × ${HOURS_PER_MONTH}h = ${price} TWD/月` : ''}`)
-      return { name: sku.name, price, meta: item.skuName }
+      const item = data.Items[0]
+      // retailPrice = 0 表示免費額度 meter，跳過以保留既有估算值
+      if (item.retailPrice === 0) {
+        console.warn(`✗ ${sku.name} | retailPrice=0（免費額度 meter），保留既有值`)
+        return null
+      }
+      // hourly: true 的 SKU 需乘以 HOURS_PER_MONTH 轉換為月費；vcores 指定核心倍數
+      const price = sku.hourly
+        ? Math.round(item.retailPrice * (sku.vcores || 1) * HOURS_PER_MONTH)
+        : item.retailPrice
+      const vcoreNote = sku.vcores ? ` × ${sku.vcores} vCores` : ''
+      console.log(`✓ ${sku.name} | ${item.skuName} | ${item.retailPrice} TWD${sku.hourly ? `${vcoreNote} × ${HOURS_PER_MONTH}h = ${price} TWD/月` : ''}`)
+      return { name: sku.name, price, meta: sku.meta || item.skuName }
     }
     console.warn(`✗ ${sku.name} | 無符合項目`)
     return null

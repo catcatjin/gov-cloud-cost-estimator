@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-05-21",
+  "lastUpdated": "2026-05-22",
   "source": "github-actions",
   "skuCount": 23,
   "prices": {
@@ -11,21 +11,21 @@
     "App Service P2v3": 9983,
     "App Service P3v3": 34688,
     "PostgreSQL B1ms": 0.9012,
-    "PostgreSQL GP D2ds v4": 5760,
-    "PostgreSQL GP D4ds v4": 9700,
-    "PostgreSQL GP D8ds v4": 19400,
-    "PostgreSQL GP E4ds v4": 14000,
-    "Blob Storage Hot LRS GB": 0.59,
+    "PostgreSQL GP D2ds v4": 6165,
+    "PostgreSQL GP D4ds v4": 12329,
+    "PostgreSQL GP D8ds v4": 24659,
+    "PostgreSQL GP E4ds v4": 15274,
+    "Blob Storage Hot LRS GB": 0.7563,
     "OpenAI GPT-4o Input": 0.16,
-    "API Management Basic": 3100,
-    "API Management Standard": 7800,
-    "API Management Premium": 30000,
     "AI Search Basic": 2100,
     "AI Search Standard S1": 6300,
     "Key Vault Operations": 4.7266,
-    "Log Analytics Ingestion GB": 0,
+    "Log Analytics Ingestion GB": 72.4742,
     "App Insights Ingestion GB": 72.4742,
-    "Blob Storage Hot GRS GB": 1.18
+    "Blob Storage Hot GRS GB": 1.5125,
+    "API Management Basic v2": 4727,
+    "API Management Standard v2": 22057,
+    "API Management Premium v2": 88229
   },
   "meta": {
     "App Service B1": "B1",
@@ -41,15 +41,15 @@
     "PostgreSQL GP D8ds v4": "D8ds v4（General Purpose）",
     "PostgreSQL GP E4ds v4": "E4ds v4（Memory Optimized）",
     "OpenAI GPT-4o Input": "GPT-4o（Input）",
-    "API Management Basic": "Basic",
-    "API Management Standard": "Standard",
-    "API Management Premium": "Premium",
     "AI Search Basic": "Basic（AI 搜尋）",
     "AI Search Standard S1": "Standard S1（AI 搜尋）",
-    "Blob Storage Hot LRS GB": "Hot LRS（本地備援）",
+    "Blob Storage Hot LRS GB": "Hot LRS",
     "Key Vault Operations": "Standard",
     "Log Analytics Ingestion GB": "Analytics Logs",
     "App Insights Ingestion GB": "Enterprise",
-    "Blob Storage Hot GRS GB": "Hot GRS（異地備援）"
+    "Blob Storage Hot GRS GB": "Hot GRS",
+    "API Management Basic v2": "Basic v2",
+    "API Management Standard v2": "Standard v2",
+    "API Management Premium v2": "Premium v2"
   }
 }
