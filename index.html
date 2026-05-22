@@ -125,9 +125,9 @@
                   <div class="build-packages-list">
                     <span v-for="pkg in mlBuildPackages" :key="pkg" class="build-package-tag">✓ {{ pkg }}</span>
                   </div>
-                  <div v-for="c in mlBuildOneTimeCosts" :key="c.src" class="build-onetime-note">
+                  <div v-for="c in mlBuildOneTimeCosts" :key="c.src" class="build-onetime-note formula-note">
                     📌 {{ c.gpuLabel }} 首次訓練費 = {{ c.hourlyNTD.toLocaleString() }} 元/時 ×
-                    <input type="number" class="training-hours-input"
+                    <input type="number" class="formula-input"
                       :value="trainingHours[c.src] ?? c.refHours"
                       @input="trainingHours[c.src] = +$event.target.value || c.refHours"
                       min="1" :placeholder="c.refHours">
@@ -184,12 +184,12 @@
                       <span class="cloud-name">{{ item.label }}</span>
                       <span class="cloud-cost">{{ item.yearWan.toFixed(1) }} 萬/年</span>
                     </div>
-                    <div v-if="item.type === 'ai-token'" class="ai-query-row ai-query-row--inline">
-                      <span class="ai-query-label">月查詢量</span>
-                      <input type="number" class="ai-query-input"
+                    <div v-if="item.type === 'ai-token'" class="cloud-pricing-note formula-note">
+                      月查詢量
+                      <input type="number" class="formula-input"
                         v-model.number="overrides.aiMonthlyQueries"
                         :placeholder="derivedAiMonthlyQueries" min="1">
-                      <span class="ai-query-unit">次/月（{{ overrides.aiMonthlyQueries ? '手動設定' : 'Q1/Q2 推算' }}）</span>
+                      次/月（{{ overrides.aiMonthlyQueries ? '手動設定' : 'Q1/Q2 推算' }}）
                     </div>
                   </template>
                 </template>
