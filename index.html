@@ -70,15 +70,6 @@
               </label>
             </div>
 
-            <!-- 月查詢量（llmApi 勾選時顯示） -->
-            <div v-if="mlConfig.sources.includes('llmApi')" class="ai-query-row">
-              <span class="ai-query-label">月查詢量</span>
-              <input type="number" class="ai-query-input"
-                v-model.number="overrides.aiMonthlyQueries"
-                :placeholder="derivedAiMonthlyQueries" min="1">
-              <span class="ai-query-unit">次/月（Q1/Q2 推算）</span>
-            </div>
-
             <!-- Q8='d' + fineTune 時顯示傳統 ML 提示 -->
             <div v-if="answers.q8 === 'd' && mlConfig.sources.includes('fineTune') && !mlConfig.sources.includes('traditionalML')"
               class="ai-config-hint">
@@ -187,6 +178,13 @@
                     <div class="cloud-item">
                       <span class="cloud-name">{{ item.label }}</span>
                       <span class="cloud-cost">{{ item.yearWan.toFixed(1) }} 萬/年</span>
+                    </div>
+                    <div v-if="item.type === 'ai-token'" class="ai-query-row ai-query-row--inline">
+                      <span class="ai-query-label">月查詢量</span>
+                      <input type="number" class="ai-query-input"
+                        v-model.number="overrides.aiMonthlyQueries"
+                        :placeholder="derivedAiMonthlyQueries" min="1">
+                      <span class="ai-query-unit">次/月（{{ overrides.aiMonthlyQueries ? '手動設定' : 'Q1/Q2 推算' }}）</span>
                     </div>
                   </template>
                 </template>
