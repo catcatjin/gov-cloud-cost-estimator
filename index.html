@@ -52,7 +52,7 @@
         <div v-else>
           <!-- 量級徽章 -->
           <div class="tier-section">
-            <span class="tier-badge" :class="'tier-' + tier">量級 {{ tier }}</span>
+            <span class="tier-badge" :class="'tier-' + tier">量級 {{ tier }}　{{ tierLabel }}</span>
             <span class="total-score">總分：{{ score }} 分</span>
           </div>
 
@@ -112,11 +112,14 @@
                 <span>建置費</span>
                 <span>{{ fmt(costs.buildLow) }}–{{ fmt(costs.buildHigh) }} 萬</span>
               </div>
-              <div class="cost-detail">
-                <template v-if="effectiveBuild.archCount === 0">{{ effectiveBuild.pmCount }} PM/架構師 × {{ effectiveBuild.pmArchSal }}萬</template>
-                <template v-else>{{ effectiveBuild.pmCount }} PM × {{ effectiveBuild.pmArchSal }}萬 + {{ effectiveBuild.archCount }} 架構師 × {{ effectiveBuild.pmArchSal }}萬</template>
-                + {{ effectiveBuild.engLow === effectiveBuild.engHigh ? effectiveBuild.engLow : effectiveBuild.engLow + '–' + effectiveBuild.engHigh }} 工程師 × {{ effectiveBuild.engSal }}萬
-                × {{ effectiveBuild.durLow }}–{{ effectiveBuild.durHigh }} 月
+              <div class="cost-detail formula-note">
+                （<template v-if="effectiveBuild.archCount === 0">
+                  <input type="number" class="formula-input" v-model.number="overrides.pmCount" :placeholder="effectiveBuild.pmCount" min="0"> PM/架構師 × <input type="number" class="formula-input" v-model.number="overrides.pmArchSal" :placeholder="effectiveBuild.pmArchSal" min="25" max="80">萬
+                </template><template v-else>
+                  <input type="number" class="formula-input" v-model.number="overrides.pmCount" :placeholder="effectiveBuild.pmCount" min="0"> PM × <input type="number" class="formula-input" v-model.number="overrides.pmArchSal" :placeholder="effectiveBuild.pmArchSal" min="25" max="80">萬 + <input type="number" class="formula-input" v-model.number="overrides.archCount" :placeholder="effectiveBuild.archCount" min="0" max="2"> 架構師 × <input type="number" class="formula-input" v-model.number="overrides.pmArchSal" :placeholder="effectiveBuild.pmArchSal" min="25" max="80">萬
+                </template>
+                + <input type="number" class="formula-input" v-model.number="overrides.engCountLow" :placeholder="effectiveBuild.engLow" min="1">–<input type="number" class="formula-input" v-model.number="overrides.engCountHigh" :placeholder="effectiveBuild.engHigh" min="1"> 工程師 × <input type="number" class="formula-input" v-model.number="overrides.engSal" :placeholder="effectiveBuild.engSal" min="20" max="60">萬）
+                × <input type="number" class="formula-input" v-model.number="overrides.durationLow" :placeholder="effectiveBuild.durLow" min="1">–<input type="number" class="formula-input" v-model.number="overrides.durationHigh" :placeholder="effectiveBuild.durHigh" min="1"> 月
               </div>
               <!-- AI/ML 建置工作包說明（不逐項報價，僅說明已含範疇） -->
               <template v-if="hasAiMl && mlBuildPackages.length > 0">
@@ -260,7 +263,9 @@
                 <span>維運費</span>
                 <span>{{ fmt(costs.maintLow) }}–{{ fmt(costs.maintHigh) }} 萬/年</span>
               </div>
-              <div class="cost-detail">{{ effectiveMaint.pmLow }}–{{ effectiveMaint.pmHigh }} 人月 × 12 月 × {{ effectiveMaint.engSal }} 萬/人月</div>
+              <div class="cost-detail formula-note">
+                <input type="number" class="formula-input" v-model.number="overrides.maintMonthLow" :placeholder="effectiveMaint.pmLow" min="0.1" step="0.1">–<input type="number" class="formula-input" v-model.number="overrides.maintMonthHigh" :placeholder="effectiveMaint.pmHigh" min="0.1" step="0.1"> 人月 × 12 月 × <input type="number" class="formula-input" v-model.number="overrides.engSal" :placeholder="effectiveMaint.engSal" min="20" max="60">萬/人月
+              </div>
             </div>
             <div class="cost-row" v-if="costs && tier !== 'S' && tier !== 'XL'">
               <div class="cost-row-top">
@@ -273,53 +278,6 @@
                 <span>一年期總費</span>
                 <span v-if="adjustedTotalLow != null">{{ fmt(adjustedTotalLow) }}–{{ fmt(adjustedTotalHigh) }} 萬</span>
                 <span v-else>{{ fmt(costs.totalLow) }}–{{ fmt(costs.totalHigh) }} 萬（靜態估算）</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 進階微調 -->
-          <div class="collapsible">
-            <button class="collapse-toggle" :aria-expanded="showAdvanced.toString()" @click="showAdvanced = !showAdvanced">
-              {{ showAdvanced ? '▲' : '▼' }} 進階微調
-            </button>
-            <div v-if="showAdvanced && tier !== 'XL'" class="collapse-content">
-              <div class="tweak-row">
-                <label>期程（月）</label>
-                <input type="number" v-model.number="overrides.durationLow"  :placeholder="tierDefaults.durationLow"  min="1">
-                <span>–</span>
-                <input type="number" v-model.number="overrides.durationHigh" :placeholder="tierDefaults.durationHigh" min="1">
-              </div>
-              <div class="tweak-row">
-                <label>PM 人數</label>
-                <button class="adj-btn" @click="adjustRole('pmCount', -1)" :disabled="(overrides.pmCount ?? tierDefaults.roles.pm) <= 0">−</button>
-                <span class="adj-count">{{ overrides.pmCount ?? tierDefaults.roles.pm }}</span>
-                <button class="adj-btn" @click="adjustRole('pmCount', 1)" :disabled="(overrides.pmCount ?? tierDefaults.roles.pm) >= 3">+</button>
-              </div>
-              <div class="tweak-row">
-                <label>架構師人數</label>
-                <button class="adj-btn" @click="adjustRole('archCount', -1)" :disabled="(overrides.archCount ?? tierDefaults.roles.arch) <= 0">−</button>
-                <span class="adj-count">{{ overrides.archCount ?? tierDefaults.roles.arch }}</span>
-                <button class="adj-btn" @click="adjustRole('archCount', 1)" :disabled="(overrides.archCount ?? tierDefaults.roles.arch) >= 2">+</button>
-              </div>
-              <div class="tweak-row">
-                <label>工程師人數</label>
-                <input type="number" v-model.number="overrides.engCountLow"  :placeholder="tierDefaults.roles.engLow"  min="1">
-                <span>–</span>
-                <input type="number" v-model.number="overrides.engCountHigh" :placeholder="tierDefaults.roles.engHigh" min="1">
-              </div>
-              <div class="tweak-row">
-                <label>PM/架構師月成本（萬）</label>
-                <input type="number" v-model.number="overrides.pmArchSal" :placeholder="tierDefaults.roles.pmArchSal" min="25" max="80">
-              </div>
-              <div class="tweak-row">
-                <label>工程師月成本（萬）</label>
-                <input type="number" v-model.number="overrides.engSal" :placeholder="tierDefaults.roles.engSal" min="20" max="60">
-              </div>
-              <div class="tweak-row">
-                <label>維運人月</label>
-                <input type="number" v-model.number="overrides.maintMonthLow"  :placeholder="tierDefaults.maintMonthLow"  min="0.1" step="0.1">
-                <span>–</span>
-                <input type="number" v-model.number="overrides.maintMonthHigh" :placeholder="tierDefaults.maintMonthHigh" min="0.1" step="0.1">
               </div>
             </div>
           </div>

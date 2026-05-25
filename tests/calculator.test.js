@@ -21,8 +21,8 @@ function expect(actual) {
 // ── calcScore ──────────────────────────────────────────────────────────────
 test('全部 null = 0', () => expect(calcScore({ q1:null,q2:null,q3:null,q4:null,q5:null,q6:null,q7:null,q8:null })).toBe(0))
 test('全選最小值 q1=a 其餘 a = 5', () => expect(calcScore({ q1:'a',q2:'a',q3:'a',q4:'a',q5:'a',q6:'a',q7:'a',q8:'a' })).toBe(5))
-// q1=50,q2=35,q3=25,q4=20,q5=15,q6=25,q7=20,q8=20 = 210
-test('最大分數 = 210', () => expect(calcScore({ q1:'e',q2:'e',q3:'d',q4:'d',q5:'c',q6:'d',q7:'d',q8:'e' })).toBe(210))
+// q1=50,q2=35,q3=25,q4=20,q5=15,q6=25,q7=20,q8=20 = 210（q1 最大選項現為 'f'）
+test('最大分數 = 210', () => expect(calcScore({ q1:'f',q2:'e',q3:'d',q4:'d',q5:'c',q6:'d',q7:'d',q8:'e' })).toBe(210))
 test('使用自訂 weights q8.b=20', () => {
   const w = JSON.parse(JSON.stringify(global.WEIGHTS))
   w.q8.b = 20

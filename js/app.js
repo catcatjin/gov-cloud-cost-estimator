@@ -15,11 +15,12 @@ const QUESTIONS = [
   {
     id: 'q1', title: '① 使用者規模',
     options: [
-      { key: 'a', label: '內部少數員工（< 100 人）',      shortLabel: '內部少數' },
-      { key: 'b', label: '全員使用（100–10,000 人）',      shortLabel: '全員' },
-      { key: 'c', label: '有限民眾（< 10 萬人）',          shortLabel: '有限民眾' },
-      { key: 'd', label: '大量民眾（10 萬–1,000 萬人）',  shortLabel: '大量民眾' },
-      { key: 'e', label: '全國規模（> 1,000 萬人）',       shortLabel: '全國' },
+      { key: 'a', label: '內部少數員工（< 100 人）',           shortLabel: '內部少數' },
+      { key: 'b', label: '單一機關（100–1,000 人）',            shortLabel: '單一機關' },
+      { key: 'c', label: '跨機關／部級（1,000–10,000 人）',    shortLabel: '跨機關' },
+      { key: 'd', label: '有限民眾（< 10 萬人）',               shortLabel: '有限民眾' },
+      { key: 'e', label: '大量民眾（10 萬–1,000 萬人）',       shortLabel: '大量民眾' },
+      { key: 'f', label: '全國規模（> 1,000 萬人）',            shortLabel: '全國' },
     ],
   },
   {
@@ -120,7 +121,6 @@ createApp({
       },
       trainingHours: {},   // { [src]: number }，使用者調整的首次訓練時數
       _syncingFromSources: false,
-      showAdvanced: true,
       showWeights: false,
       pricingData: {},
       pricingMeta: {},
@@ -151,6 +151,9 @@ createApp({
     },
     tier() {
       return calcTier(this.score)
+    },
+    tierLabel() {
+      return { S: '部門級', M: '機關級', L: '部會級', XL: '全國級' }[this.tier] || ''
     },
     costs() {
       if (!this.allAnswered) return null
@@ -600,7 +603,7 @@ createApp({
       const lines = [
         '## 政府資訊系統規模估算',
         `估算時間：${now}`,
-        `量級：${this.tier}（總分 ${this.score} 分）`,
+        `量級：${this.tier} ${this.tierLabel}（總分 ${this.score} 分）`,
         `費率來源：${sourceLabel}`,
         '',
         '【費用估算】',
