@@ -13,20 +13,21 @@ const HOURS_PER_MONTH = 730
 
 const SKUS = [
   // App Service（Consumption 計費單位為 1 Hour，需 ×730）
+  // 用 contains(productName,'Linux') 確保取 Linux 價，API 不支援 operatingSystemFamily 欄位
   { name: 'App Service B1',   hourly: true,
-    filter: "serviceName eq 'Azure App Service' and skuName eq 'B1' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    filter: "serviceName eq 'Azure App Service' and skuName eq 'B1' and contains(productName,'Linux') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'App Service S1',   hourly: true,
-    filter: "serviceName eq 'Azure App Service' and skuName eq 'S1' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    filter: "serviceName eq 'Azure App Service' and skuName eq 'S1' and contains(productName,'Linux') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'App Service S2',   hourly: true,
-    filter: "serviceName eq 'Azure App Service' and skuName eq 'S2' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    filter: "serviceName eq 'Azure App Service' and skuName eq 'S2' and contains(productName,'Linux') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'App Service S3',   hourly: true,
-    filter: "serviceName eq 'Azure App Service' and skuName eq 'S3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    filter: "serviceName eq 'Azure App Service' and skuName eq 'S3' and contains(productName,'Linux') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'App Service P1v3', hourly: true,
-    filter: "serviceName eq 'Azure App Service' and skuName eq 'P1 v3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    filter: "serviceName eq 'Azure App Service' and skuName eq 'P1 v3' and contains(productName,'Linux') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'App Service P2v3', hourly: true,
-    filter: "serviceName eq 'Azure App Service' and skuName eq 'P2 v3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    filter: "serviceName eq 'Azure App Service' and skuName eq 'P2 v3' and contains(productName,'Linux') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   { name: 'App Service P3v3', hourly: true,
-    filter: "serviceName eq 'Azure App Service' and skuName eq 'P3 v3' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    filter: "serviceName eq 'Azure App Service' and skuName eq 'P3 v3' and contains(productName,'Linux') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
 
   // PostgreSQL Flexible Server（按 vCore/小時計費，vcores 欄位指定核心數，需 ×vcores×730）
   // Ddsv4 系列：General Purpose，API 回傳 per-vCore 價格，乘以核心數得月費
@@ -56,11 +57,23 @@ const SKUS = [
   { name: 'API Management Premium v2',  hourly: true,
     filter: "serviceName eq 'API Management' and skuName eq 'Premium v2' and meterName eq 'Premium v2 Unit' and armRegionName eq 'eastus' and priceType eq 'Consumption'" },
 
-  // Azure AI Search：直接用 config.js monthlyNTD（2100/6300）
+  // Azure AI Search（按小時計費，需 ×730；serviceName 為 'Azure Cognitive Search'）
+  { name: 'AI Search Basic', hourly: true,
+    filter: "serviceName eq 'Azure Cognitive Search' and skuName eq 'Basic' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+  { name: 'AI Search Standard S1', hourly: true,
+    filter: "serviceName eq 'Azure Cognitive Search' and skuName eq 'Standard S1' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+
+  // ML Workspace：Retail API 無此固定計費項目，由 config.js monthlyNTD 提供 fallback
+  // NC4as T4 v3：East Asia 無此 GPU SKU，由 config.js monthlyNTD 提供 fallback
+  // Storage LRS（模型登錄 / 容器儲存用；productName 必須用 'Blob Storage' 而非 'Azure Blob Storage'）
+  { name: 'Storage LRS',
+    filter: "serviceName eq 'Storage' and productName eq 'Blob Storage' and meterName eq 'Hot LRS Data Stored' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
 
   // 用量計費
+  // meterName eq 'Operations' 對應 Secret/Key 一般操作（0.9453 TWD/10K）
+  // 避免誤取 Advanced Key Operations（4.7266 TWD/10K）
   { name: 'Key Vault Operations',
-    filter: "serviceName eq 'Key Vault' and contains(meterName,'Operations') and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
+    filter: "serviceName eq 'Key Vault' and meterName eq 'Operations' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },
   // Log Analytics: 使用 Analytics Logs SKU 的 Data Analyzed meter（付費層，72 TWD/GB）
   { name: 'Log Analytics Ingestion GB',
     filter: "serviceName eq 'Log Analytics' and skuName eq 'Analytics Logs' and meterName eq 'Analytics Logs Data Analyzed' and armRegionName eq 'eastasia' and priceType eq 'Consumption'" },

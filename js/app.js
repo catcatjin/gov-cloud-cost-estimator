@@ -247,8 +247,9 @@ createApp({
           let resolvedLabel = item.label
           if (item.type === 'ai-token') {
             const q = this.effectiveAiMonthlyQueries
-            const unitPrice = this.pricingData[item.sku] || 0.16
-            monthlyNTD = q * item.tokensPerQuery / 1000 * unitPrice
+            const inputPrice  = this.pricingData[item.inputSku]  || 0.16
+            const outputPrice = this.pricingData[item.outputSku] || 0.64
+            monthlyNTD = q * (item.inputTokensPerQuery / 1000 * inputPrice + item.outputTokensPerQuery / 1000 * outputPrice)
           } else if (item.skuByTier) {
             const sku = item.skuByTier[this.tier] ?? item.skuByTier['M']
             const fallbackNTD = item.monthlyNTDByTier?.[this.tier] ?? item.monthlyNTDByTier?.['M'] ?? 0

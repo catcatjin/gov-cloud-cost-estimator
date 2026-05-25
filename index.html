@@ -131,7 +131,7 @@
                       :value="trainingHours[c.src] ?? c.refHours"
                       @input="trainingHours[c.src] = +$event.target.value || c.refHours"
                       min="1" :placeholder="c.refHours">
-                    小時 ≈ {{ c.total.toLocaleString() }} NTD（已納入建置費估算）
+                    小時 ≈ {{ c.total.toLocaleString() }} NTD（首次訓練硬體費供採購參考；建置費以工程師人月估算）
                   </div>
                 </div>
               </template>

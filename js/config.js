@@ -285,7 +285,8 @@ const AI_WORKLOAD_TEMPLATES = {
     buildPackages: ['AI 使用情境設計', 'Prompt 流程設計與調校', 'LLM API 串接', '回答品質測試'],
     cloudItems: [
       { id: 'openai', label: 'Azure OpenAI（GPT-4o）', type: 'ai-token',
-        sku: 'OpenAI GPT-4o Input', tokensPerQuery: 2000 },
+        inputSku: 'OpenAI GPT-4o Input',  inputTokensPerQuery: 2000,
+        outputSku: 'OpenAI GPT-4o Output', outputTokensPerQuery: 500 },
     ],
     maintenanceItems: ['Prompt 維護與品質監控'],
     buildStaffAdj: { engineerDelta: 0, durationDelta: 0 },
