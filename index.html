@@ -35,9 +35,6 @@
             >
               <input type="radio" :name="q.id" :value="opt.key" v-model="answers[q.id]">
               <span class="option-text">{{ opt.label }}</span>
-              <span class="option-score" v-if="answers[q.id] === opt.key">
-                +{{ weights[q.id][opt.key] }}
-              </span>
             </label>
           </div>
         </div>
@@ -53,7 +50,7 @@
           <!-- 量級徽章 -->
           <div class="tier-section">
             <span class="tier-badge" :class="'tier-' + tier">量級 {{ tier }}　{{ tierLabel }}</span>
-            <span class="total-score">總分：{{ score }} 分</span>
+            <p class="tier-desc">{{ tierDesc }}</p>
           </div>
 
           <!-- AI/ML 功能設定（Q8 ≠ 'a' 才顯示，置於費用明細最頂端） -->
@@ -109,8 +106,12 @@
           <div class="cost-section">
             <div class="cost-row" v-if="costs && !costs.isXL">
               <div class="cost-row-top">
-                <span>建置費</span>
+                <span>建置費 <button class="cost-note-toggle inline" @click="showBuildNote = !showBuildNote">{{ showBuildNote ? '▲' : '▼' }} 說明</button></span>
                 <span>{{ fmt(costs.buildLow) }}–{{ fmt(costs.buildHigh) }} 萬</span>
+              </div>
+              <div v-if="showBuildNote" class="cost-note-content">
+                <p>估算專案期間 PM、架構師、工程師投入的人月成本。人月成本為委外估算單價，非人員實領薪資；已包含專案管理、溝通協調、測試、文件、部署與廠商管理成本。</p>
+                <p>月成本不是員工薪資，而是專案報價單位。實際採購時會受廠商資歷、履約範圍、文件要求、資安測試、駐點需求、保固條款與服務水準影響。</p>
               </div>
               <div class="cost-detail formula-note">
                 （<template v-if="effectiveBuild.archCount === 0">
@@ -157,7 +158,10 @@
                 </div>
 
                 <!-- 基礎平台 -->
-                <div class="bundle-section-header">基礎平台（必含）</div>
+                <div class="bundle-section-header">
+                  基礎平台（預設納入）
+                  <span class="base-platform-note">預設納入代表此類系統通常需要的基礎能力，不限定使用同一 Azure 產品；若已有等效服務，可改以替代項目或既有資源估算。</span>
+                </div>
                 <template v-for="item in cloudBreakdown.baseItems" :key="item.id">
                   <div :class="['cloud-item', 'cloud-item-base', { 'cloud-item-selectable': item.type === 'selectable' }]">
                     <span class="cloud-name">{{ item.label }}</span>
@@ -175,8 +179,20 @@
                     </template>
                     <span v-else-if="item.type !== 'selectable'" class="cloud-count-fixed">× {{ item.instances }} 台</span>
                     <span class="cloud-cost">{{ item.yearWan.toFixed(1) }} 萬/年</span>
+                    <button v-if="item.why" class="base-item-expand-btn"
+                      @click="toggleBaseItemExpand(item.id)"
+                      :aria-expanded="!!expandedBaseItems[item.id]"
+                      :aria-label="expandedBaseItems[item.id] ? '收合 ' + item.label + ' 必要性說明' : '展開 ' + item.label + ' 必要性說明'">
+                      {{ expandedBaseItems[item.id] ? '▲' : '▼' }}
+                    </button>
                   </div>
-                  <div v-if="item.computedNote || item.note" class="cloud-pricing-note">{{ item.computedNote || item.note }}</div>
+                  <div v-if="expandedBaseItems[item.id] && item.why" class="base-item-detail">
+                    <div class="base-item-row"><span class="base-item-label">為什麼需要</span><span>{{ item.why }}</span></div>
+                    <div class="base-item-row"><span class="base-item-label">承擔責任</span><span>{{ item.covers }}</span></div>
+                    <div class="base-item-row"><span class="base-item-label">可替代情境</span><span>{{ item.canReplace }}</span></div>
+                    <div v-if="item.computedNote || item.note" class="base-item-pricing-note">{{ item.computedNote || item.note }}</div>
+                  </div>
+                  <div v-else-if="item.computedNote || item.note" class="cloud-pricing-note">{{ item.computedNote || item.note }}</div>
                 </template>
 
                 <!-- ML 工作負載費用 -->
@@ -222,7 +238,13 @@
                             :aria-label="svc.label">
                         </label>
                         <span class="cloud-name">{{ svc.label }}</span>
-                        <template v-if="svc.adjustable">
+                        <select v-if="svc.type === 'selectable'" class="item-select"
+                          :value="serviceSelections[svc.key] ?? svc.defaultOption"
+                          :disabled="!svc.svcChecked"
+                          @change="setServiceSelection(svc.key, $event.target.value)">
+                          <option v-for="opt in svc.options" :key="opt.id" :value="opt.id">{{ opt.label || pricingMeta[opt.sku] || opt.sku }}</option>
+                        </select>
+                        <template v-else-if="svc.adjustable">
                           <input type="number" class="instance-input"
                             :value="serviceInstances[svc.key] ?? svc.instances"
                             @change="setServiceInstance(svc.key, +$event.target.value, svc.min, svc.max)"
@@ -260,13 +282,18 @@
             </div>
             <div class="cost-row" v-if="costs && !costs.isXL">
               <div class="cost-row-top">
-                <span>維運費</span>
+                <span>維運費 <button class="cost-note-toggle inline" @click="showMaintNote = !showMaintNote">{{ showMaintNote ? '▲' : '▼' }} 說明</button></span>
                 <span>{{ fmt(costs.maintLow) }}–{{ fmt(costs.maintHigh) }} 萬/年</span>
+              </div>
+              <div v-if="showMaintNote" class="cost-note-content">
+                <p>估算上線後每月持續支援的人月成本。維運人月表示每月平均投入量，例如 0.5 人月約等於半位工程師的持續支援量，包含例行維護、問題排除、小幅調整與監控回應。</p>
+                <p>實際費用會受廠商保固條款、服務水準協議（SLA）與駐點需求影響。</p>
               </div>
               <div class="cost-detail formula-note">
                 <input type="number" class="formula-input" v-model.number="overrides.maintMonthLow" :placeholder="effectiveMaint.pmLow" min="0.1" step="0.1">–<input type="number" class="formula-input" v-model.number="overrides.maintMonthHigh" :placeholder="effectiveMaint.pmHigh" min="0.1" step="0.1"> 人月 × 12 月 × <input type="number" class="formula-input" v-model.number="overrides.engSal" :placeholder="effectiveMaint.engSal" min="20" max="60">萬/人月
               </div>
             </div>
+
             <div class="cost-row" v-if="costs && tier !== 'S' && tier !== 'XL'">
               <div class="cost-row-top">
                 <span>預備金（{{ contingencyPct }}%）</span>
@@ -291,6 +318,10 @@
               <button class="btn-reset" @click="resetWeights">重設為預設值</button>
             </div>
             <div v-if="showWeights" class="collapse-content weights-panel">
+              <div class="weights-score-summary">
+                目前總分：<strong>{{ score }}</strong> 分　→　量級 <strong>{{ tier }}　{{ tierLabel }}</strong>
+                <span class="weights-score-hint">（S ≤ 25、M ≤ 60、L ≤ 110、XL &gt; 110）</span>
+              </div>
               <div v-for="q in questions" :key="q.id" class="weight-question">
                 <div class="weight-question-title">{{ q.title }}</div>
                 <div class="weight-options">

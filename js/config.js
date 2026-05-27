@@ -60,6 +60,9 @@ const CLOUD_TEMPLATES = {
   S: {
     base: [
       { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 's1', adjustable: true, min: 1, max: 4, instances: 1,
+        why: '承載網站 / API 的執行環境，沒有穩定的應用程式平台就沒有服務入口',
+        covers: '程式執行、HTTPS 服務、水平擴充、自動部署與基本監控整合',
+        canReplace: '若改用 VM、Container Apps、AKS 或既有伺服器，可移除並改以對應平台費用估算',
         options: [
           { id: 's1', sku: 'App Service S1',  monthlyNTD: 2340 },  // 快照 2026-05-13
           { id: 's2', sku: 'App Service S2',  monthlyNTD: 4680 },
@@ -67,12 +70,18 @@ const CLOUD_TEMPLATES = {
         ],
       },
       { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 4, instances: 1,
+        why: '保存系統主要業務資料，例如案件、申請、帳號、設定與交易紀錄',
+        covers: '結構化資料儲存、SQL 查詢、交易一致性、自動備份與還原',
+        canReplace: '若系統無需資料庫，或已有既有機關資料庫，可移除或改列整合成本',
         options: [
           { id: 'gp_d2ds', sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 5760 },
           { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700 },
         ],
       },
-      { id: 'other', label: 'Blob Storage + DNS/SSL', monthlyNTD: 300, instances: 1,
+      { id: 'other', label: '小型共用基礎服務（Blob + DNS/SSL）', monthlyNTD: 300, instances: 1,
+        why: '保存附件、上傳檔、報表與系統產物，並含正式網址解析與 HTTPS 憑證',
+        covers: '非資料庫型檔案儲存、生命週期管理、備份基礎、網域解析（DNS）與 SSL 憑證',
+        canReplace: '若確定無附件或匯出需求且使用既有網域與 SSL，可降低此項估算；若已有共用儲存與 DNS，可改列介接成本',
         note: '估算值：Blob Hot LRS ~100 GB（100 × 0.59 ≈ 59 TWD）+ Azure DNS + SSL 憑證費合計，依實際用量調整' },
     ],
     bundles: [
@@ -120,6 +129,9 @@ const CLOUD_TEMPLATES = {
   M: {
     base: [
       { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 's1', adjustable: true, min: 1, max: 8, instances: 1,
+        why: '承載網站 / API 的執行環境，沒有穩定的應用程式平台就沒有服務入口',
+        covers: '程式執行、HTTPS 服務、水平擴充、自動部署與基本監控整合',
+        canReplace: '若改用 VM、Container Apps、AKS 或既有伺服器，可移除並改以對應平台費用估算',
         options: [
           { id: 's1',   sku: 'App Service S1',   monthlyNTD: 2340 },
           { id: 's2',   sku: 'App Service S2',   monthlyNTD: 4680 },
@@ -127,6 +139,9 @@ const CLOUD_TEMPLATES = {
         ],
       },
       { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d2ds', adjustable: true, min: 1, max: 5, instances: 1,
+        why: '保存系統主要業務資料，例如案件、申請、帳號、設定與交易紀錄',
+        covers: '結構化資料儲存、SQL 查詢、交易一致性、自動備份與還原',
+        canReplace: '若系統無需資料庫，或已有既有機關資料庫，可移除或改列整合成本',
         options: [
           { id: 'gp_d2ds', sku: 'PostgreSQL GP D2ds v4', monthlyNTD: 5760  },
           { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700  },
@@ -134,18 +149,31 @@ const CLOUD_TEMPLATES = {
         ],
       },
       { id: 'storage', label: 'Blob Storage（50–500 GB）', instances: 1,
+        why: '保存非資料庫型檔案，例如附件、上傳檔、報表、匯出檔、備份檔與系統產物',
+        covers: '大量檔案儲存、低成本保存、生命週期管理、備份 / 備援基礎',
+        canReplace: '若確定無附件、報表、備份或匯出需求，可降到最低量；若已有共用儲存，可改列介接成本',
         unitSku: 'Blob Storage Hot LRS GB', estimatedUsage: 200, usageUnit: 'GB',
         monthlyNTD: 800 },
-      { id: 'apim', label: 'API Management', type: 'selectable', defaultOption: 'apim_basic', instances: 1,
-        options: [
-          { id: 'apim_basic',    label: 'Basic v2',    sku: 'API Management Basic v2',    monthlyNTD: 4727 },
-          { id: 'apim_standard', label: 'Standard v2', sku: 'API Management Standard v2', monthlyNTD: 22058 },
-        ],
-      },
       { id: 'dns', label: 'DNS', monthlyNTD: 200, instances: 1,
+        why: '讓使用者以正式機關網址進入服務，是政府對外服務的基本可信度要件',
+        covers: '網域解析、DNS 紀錄管理與正式服務網址維運',
+        canReplace: '若使用既有機關網域或共用 DNS 平台，可不另列 Azure DNS，但仍需確認解析設定與維運責任',
         note: '估算值：Azure DNS 公共區域固定費 + 月查詢量（~$6 USD/月）' },
     ],
     bundles: [
+      {
+        id: 'apim', label: 'API 管理',
+        autoSelect: (answers) => answers.q4 !== 'a',
+        notice: '有外部系統介接時建議採用 API Management 統一管理流量與授權；若已有 API Gateway 或無對外 API，可取消勾選',
+        items: [
+          { id: 'apimSvc', label: 'API Management', type: 'selectable', defaultOption: 'apim_basic', instances: 1,
+            options: [
+              { id: 'apim_basic',    label: 'Basic v2',    sku: 'API Management Basic v2',    monthlyNTD: 4727 },
+              { id: 'apim_standard', label: 'Standard v2', sku: 'API Management Standard v2', monthlyNTD: 22058 },
+            ],
+          },
+        ],
+      },
       {
         id: 'security', label: '資安合規',
         autoSelect: (answers) => answers.q3 !== 'a',
@@ -155,7 +183,7 @@ const CLOUD_TEMPLATES = {
             unitSku: 'Key Vault Operations', estimatedUsage: 400, usageUnit: '萬次',
             monthlyNTD: 400 },
           { id: 'waf',      label: 'WAF（網頁應用防火牆）',          monthlyNTD: 6000, instances: 1,
-            note: '估算值：Azure App Gateway WAF v2 固定費，實際依容量單位（CU）與流量調整' },
+            note: '估算值：前端 WAF 規則與流量防護費用；可由 Front Door WAF Policy、Application Gateway WAF 或既有資安閘道提供，實際依入口架構調整' },
           { id: 'defender', label: 'Defender for Cloud（威脅偵測）', monthlyNTD: 300,  instances: 1,
             note: '估算值：僅含 Defender for App Service（~$15 USD/月），啟用更多服務需另計' },
         ],
@@ -194,6 +222,9 @@ const CLOUD_TEMPLATES = {
   L: {
     base: [
       { id: 'appSvc', label: 'App Service', type: 'selectable', defaultOption: 'p1v3', adjustable: true, min: 2, max: 12, instances: 2,
+        why: '承載網站 / API 的執行環境，沒有穩定的應用程式平台就沒有服務入口',
+        covers: '程式執行、HTTPS 服務、水平擴充、自動部署與基本監控整合',
+        canReplace: '若改用 VM、Container Apps、AKS 或既有伺服器，可移除並改以對應平台費用估算',
         options: [
           { id: 'p1v3', sku: 'App Service P1v3', monthlyNTD: 4140  },
           { id: 'p2v3', sku: 'App Service P2v3', monthlyNTD: 8280  },
@@ -201,6 +232,9 @@ const CLOUD_TEMPLATES = {
         ],
       },
       { id: 'db', label: 'PostgreSQL', type: 'selectable', defaultOption: 'gp_d4ds', adjustable: true, min: 1, max: 6, instances: 1,
+        why: '保存系統主要業務資料，例如案件、申請、帳號、設定與交易紀錄',
+        covers: '結構化資料儲存、SQL 查詢、交易一致性、自動備份與還原',
+        canReplace: '若系統無需資料庫，或已有既有機關資料庫，可移除或改列整合成本',
         options: [
           { id: 'gp_d4ds', sku: 'PostgreSQL GP D4ds v4', monthlyNTD: 9700  },
           { id: 'gp_d8ds', sku: 'PostgreSQL GP D8ds v4', monthlyNTD: 19400 },
@@ -208,20 +242,36 @@ const CLOUD_TEMPLATES = {
         ],
       },
       { id: 'storage', label: 'Blob Storage 分層', instances: 1,
+        why: '保存非資料庫型檔案，例如附件、上傳檔、報表、匯出檔、備份檔與系統產物',
+        covers: '大量檔案儲存、低成本保存、生命週期管理、備份 / 備援基礎',
+        canReplace: '若確定無附件、報表、備份或匯出需求，可降到最低量；若已有共用儲存，可改列介接成本',
         unitSku: 'Blob Storage Hot LRS GB', estimatedUsage: 1000, usageUnit: 'GB',
         monthlyNTD: 2500 },
       { id: 'cdn', label: 'Azure CDN / Front Door', monthlyNTD: 4300, instances: 1,
+        why: 'L 級服務大量民眾，需前端加速入口統一處理流量、SSL 終止與基本防護',
+        covers: '前端入口、CDN 加速、SSL 終止與跨區流量分流；WAF / DDoS 依資安需求另列',
+        canReplace: '若流量集中於特定區域且不需前端加速，可評估改用 Application Gateway 或移除',
         note: '估算值：Azure Front Door Standard 固定費 + 流量費概估（~$150 USD/月），依流量規模調整' },
-      { id: 'apim', label: 'API Management', type: 'selectable', defaultOption: 'apim_standard', instances: 1,
-        options: [
-          { id: 'apim_standard', label: 'Standard v2', sku: 'API Management Standard v2', monthlyNTD: 22058  },
-          { id: 'apim_premium',  label: 'Premium v2',  sku: 'API Management Premium v2',  monthlyNTD: 88230 },
-        ],
-      },
       { id: 'dns', label: 'DNS', monthlyNTD: 200, instances: 1,
+        why: '讓使用者以正式機關網址進入服務，是政府對外服務的基本可信度要件',
+        covers: '網域解析、DNS 紀錄管理與正式服務網址維運',
+        canReplace: '若使用既有機關網域或共用 DNS 平台，可不另列 Azure DNS，但仍需確認解析設定與維運責任',
         note: '估算值：Azure DNS 公共區域固定費 + 月查詢量（~$6 USD/月）' },
     ],
     bundles: [
+      {
+        id: 'apim', label: 'API 管理',
+        autoSelect: (answers) => answers.q4 !== 'a',
+        notice: '有外部系統介接時建議採用 API Management 統一管理流量與授權；若已有 API Gateway 或無對外 API，可取消勾選',
+        items: [
+          { id: 'apimSvc', label: 'API Management', type: 'selectable', defaultOption: 'apim_standard', instances: 1,
+            options: [
+              { id: 'apim_standard', label: 'Standard v2', sku: 'API Management Standard v2', monthlyNTD: 22058 },
+              { id: 'apim_premium',  label: 'Premium v2',  sku: 'API Management Premium v2',  monthlyNTD: 88230 },
+            ],
+          },
+        ],
+      },
       {
         id: 'security', label: '資安合規',
         autoSelect: (answers) => answers.q3 !== 'a',
@@ -231,11 +281,18 @@ const CLOUD_TEMPLATES = {
             unitSku: 'Key Vault Operations', estimatedUsage: 400, usageUnit: '萬次',
             monthlyNTD: 400 },
           { id: 'waf',      label: 'WAF v2（網頁應用防火牆）',            monthlyNTD: 12000, instances: 1,
-            note: '估算值：Azure App Gateway WAF v2 高用量，實際依容量單位（CU）與流量調整' },
+            note: '估算值：前端 WAF 規則與流量防護費用；可由 Front Door WAF Policy、Application Gateway WAF 或既有資安閘道提供，實際依入口架構調整' },
           { id: 'defender', label: 'Defender for Cloud（威脅偵測）',      monthlyNTD: 3700,  instances: 1,
             note: '估算值：App Service + Storage + DB 多服務啟用概估，實際依啟用項目調整' },
-          { id: 'ddos',     label: 'DDoS Protection',                     monthlyNTD: 6000,  instances: 1,
-            note: '以 Azure DDoS IP Protection（$199 USD/IP/月）計算' },
+        ],
+      },
+      {
+        id: 'networkProtection', label: '進階網路防護',
+        autoSelect: (answers) => answers.q6 === 'd' || answers.q7 === 'd' || answers.q1 === 'f',
+        notice: '適用於高尖峰、高可用或全國級服務；若採 Front Door / PaaS 入口且沒有獨立公開 IP，可視架構取消。',
+        items: [
+          { id: 'ddos', label: 'DDoS Protection（進階防護）', monthlyNTD: 6000, instances: 1,
+            note: '適用於有 Public IP、Application Gateway、AKS、VM 或高風險公開入口的情境；若主要入口為 Front Door，通常先以 Front Door 內建邊緣防護與 WAF 評估，再視風險加列。' },
         ],
       },
       {

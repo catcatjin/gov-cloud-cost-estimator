@@ -122,12 +122,15 @@ createApp({
       trainingHours: {},   // { [src]: number }，使用者調整的首次訓練時數
       _syncingFromSources: false,
       showWeights: false,
+      showBuildNote: false,
+      showMaintNote: false,
       pricingData: {},
       pricingMeta: {},
       checkedServices:   {},  // { [bundleId__serviceId]: boolean }
       serviceInstances:  {},  // { [bundleId__serviceId | base__serviceId]: number }
       serviceSelections: {},  // { [base__serviceId]: optionId }（selectable 下拉選項）
       expandedBundles:   {},  // { [bundleId]: boolean }
+      expandedBaseItems: {},  // { [itemId]: boolean }
       pricingSource: 'unavailable',
       pricingLastUpdated: null,
       copyStatus: '',
@@ -154,6 +157,14 @@ createApp({
     },
     tierLabel() {
       return { S: '部門級', M: '機關級', L: '部會級', XL: '全國級' }[this.tier] || ''
+    },
+    tierDesc() {
+      return {
+        S:  '部門/單位級內部工具，低交易量、低資料風險、功能單純',
+        M:  '機關級或跨科室服務，中等交易量、一般個資或標準整合需求',
+        L:  '跨機關整合、重要對外服務或高機敏資料，需高可用與完整治理',
+        XL: '全國級或高衝擊關鍵服務，涉及大量尖峰、重大風險或客製架構規劃',
+      }[this.tier] || ''
     },
     costs() {
       if (!this.allAnswered) return null
@@ -311,8 +322,15 @@ createApp({
             ? (this.serviceInstances[key] ?? svc.instances)
             : svc.instances
           let unitMonthly
+          let selectedOption = null
           if (svc.type === 'dynamic-base') {
             unitMonthly = baseUnitPrice[svc.baseRef] || 0
+          } else if (svc.type === 'selectable') {
+            const selId = this.serviceSelections[key] ?? svc.defaultOption
+            selectedOption = svc.options?.find(o => o.id === selId) ?? svc.options?.[0]
+            unitMonthly = selectedOption
+              ? (selectedOption.sku ? (this.pricingData[selectedOption.sku] || selectedOption.monthlyNTD || 0) : (selectedOption.monthlyNTD || 0))
+              : 0
           } else if (svc.unitSku) {
             const unitPrice = this.pricingData[svc.unitSku] ?? (svc.monthlyNTD / (svc.estimatedUsage || 1))
             unitMonthly = unitPrice * (svc.estimatedUsage || 1)
@@ -324,7 +342,7 @@ createApp({
           const computedNote   = svc.unitSku
             ? _unitNote(this.pricingData[svc.unitSku], svc.estimatedUsage, svc.usageUnit)
             : null
-          return { ...svc, key, svcChecked, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10, computedNote }
+          return { ...svc, key, svcChecked, selectedOption, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10, computedNote }
         })
         const bundleYearWan = items.reduce((s, i) => s + i.yearWan, 0)
         const isExpanded    = !!this.expandedBundles[bundle.id]
@@ -525,6 +543,7 @@ createApp({
       }
       this.checkedServices  = newCheckedServices
       this.expandedBundles  = {}
+      this.expandedBaseItems = {}
     },
 
     getBundleChecked(bundleId) {
@@ -574,6 +593,10 @@ createApp({
 
     toggleBundleExpand(bundleId) {
       this.expandedBundles = { ...this.expandedBundles, [bundleId]: !this.expandedBundles[bundleId] }
+    },
+
+    toggleBaseItemExpand(itemId) {
+      this.expandedBaseItems = { ...this.expandedBaseItems, [itemId]: !this.expandedBaseItems[itemId] }
     },
 
 
@@ -643,6 +666,9 @@ createApp({
         }
       }
 
+      lines.push('', '【估算說明】')
+      lines.push('人月成本為委外估算單價，非人員實領薪資；已含專案管理、溝通協調、測試、文件與廠商管理成本。')
+      lines.push('基礎平台代表系統所需基礎能力，不限定使用同一 Azure 產品；若已有等效服務，可改以替代項目或既有資源估算。')
       lines.push('', '【問卷答案】')
       for (const q of this.questions) {
         const choice = this.answers[q.id]
@@ -736,6 +762,7 @@ createApp({
         this.serviceInstances  = {}
         this.serviceSelections = {}
         this.expandedBundles   = {}
+        this.expandedBaseItems = {}
         this.autoSelectBundles()
       }
     },
