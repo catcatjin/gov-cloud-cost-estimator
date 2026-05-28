@@ -235,7 +235,8 @@ createApp({
         const computedNote = item.unitSku
           ? _unitNote(this.pricingData[item.unitSku], item.estimatedUsage, item.usageUnit)
           : null
-        return { ...item, key, effectiveInstances, selectedOption, yearWan: Math.round(yearWan * 10) / 10, computedNote }
+        const trustMeta = inferTrustMeta(item, { section: 'base', selectedOption })
+        return { ...item, ...trustMeta, key, effectiveInstances, selectedOption, yearWan: Math.round(yearWan * 10) / 10, computedNote }
       })
 
       // bundle dynamic-base 參照用：base item id → 每台月費單價
@@ -275,7 +276,8 @@ createApp({
               : (item.monthlyNTD || 0)
           }
           const yearWan = monthlyNTD * 12 / 10000
-          return { ...item, label: resolvedLabel, yearWan: Math.round(yearWan * 10) / 10 }
+          const trustMeta = inferTrustMeta(item, { section: 'ml' })
+          return { ...item, ...trustMeta, label: resolvedLabel, yearWan: Math.round(yearWan * 10) / 10 }
         })
       }).filter(item => {
         if (seenWorkloadIds.has(item.id)) return false
@@ -295,7 +297,8 @@ createApp({
           const monthlyNTD = item.sku
             ? (this.pricingData[item.sku] || item.monthlyNTD || item.estimatedMonthlyNTD || 0)
             : (item.estimatedMonthlyNTD || 0)
-          inferenceItems.push({ ...item, yearWan: Math.round(monthlyNTD * 12 / 10000 * 10) / 10 })
+          const trustMeta = inferTrustMeta(item, { section: 'ml' })
+          inferenceItems.push({ ...item, ...trustMeta, yearWan: Math.round(monthlyNTD * 12 / 10000 * 10) / 10 })
         }
       }
 
@@ -307,6 +310,7 @@ createApp({
           retrainingCloudItems.push({
             id: 'retrainingCloud', label: r.label,
             yearWan: Math.round(r.monthlyNTD * 12 / 10000 * 10) / 10,
+            ...inferTrustMeta({ ...r, sourceType: 'manualAssumption' }, { section: 'ml' }),
           })
         }
       }
@@ -342,7 +346,8 @@ createApp({
           const computedNote   = svc.unitSku
             ? _unitNote(this.pricingData[svc.unitSku], svc.estimatedUsage, svc.usageUnit)
             : null
-          return { ...svc, key, svcChecked, selectedOption, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10, computedNote }
+          const trustMeta      = inferTrustMeta(svc, { section: 'bundle', bundle, selectedOption })
+          return { ...svc, ...trustMeta, key, svcChecked, selectedOption, effectiveInstances, yearWan: Math.round(yearWan * 10) / 10, computedNote }
         })
         const bundleYearWan = items.reduce((s, i) => s + i.yearWan, 0)
         const isExpanded    = !!this.expandedBundles[bundle.id]
@@ -514,6 +519,31 @@ createApp({
       return n.toLocaleString('zh-TW')
     },
 
+    formatTrustSummary() {
+      if (!this.cloudBreakdown) return ''
+      const selectedBundleItems = this.cloudBreakdown.bundles.flatMap(bundle =>
+        bundle.items.filter(item => item.svcChecked)
+      )
+      const items = [
+        ...this.cloudBreakdown.baseItems,
+        ...(this.cloudBreakdown.mlItems || []),
+        ...selectedBundleItems,
+      ].filter(Boolean)
+      if (items.length === 0) return ''
+      const sourceCounts = {}
+      const necessityCounts = {}
+      for (const item of items) {
+        const source = item.sourceLabel || '未標示'
+        const necessity = item.necessityLabel || '未標示'
+        sourceCounts[source] = (sourceCounts[source] || 0) + 1
+        necessityCounts[necessity] = (necessityCounts[necessity] || 0) + 1
+      }
+      const fmtCounts = counts => Object.entries(counts)
+        .map(([label, count]) => `${label} ${count} 項`)
+        .join('、')
+      return `來源：${fmtCounts(sourceCounts)}；必要性：${fmtCounts(necessityCounts)}`
+    },
+
     adjustRole(field, delta) {
       const ROLE_CONFIG = {
         pmCount:   { defKey: 'pm',   max: 3 },
@@ -669,6 +699,9 @@ createApp({
       lines.push('', '【估算說明】')
       lines.push('人月成本為委外估算單價，非人員實領薪資；已含專案管理、溝通協調、測試、文件與廠商管理成本。')
       lines.push('基礎平台代表系統所需基礎能力，不限定使用同一 Azure 產品；若已有等效服務，可改以替代項目或既有資源估算。')
+      if (this.cloudBreakdown) {
+        lines.push(`費用項目可信度標籤：${this.formatTrustSummary()}`)
+      }
       lines.push('', '【問卷答案】')
       for (const q of this.questions) {
         const choice = this.answers[q.id]

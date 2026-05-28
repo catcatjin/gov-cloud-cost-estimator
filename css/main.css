@@ -22,6 +22,13 @@ body {
 .header-title { font-weight: 700; font-size: 15px; }
 .header-pricing { display: flex; align-items: center; gap: 8px; }
 
+.methodology-link {
+  color: #2b6cb0;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.methodology-link:hover { text-decoration: underline; }
 
 .pricing-badge {
   font-size: 11px;
@@ -312,6 +319,37 @@ main.main-layout, .main-layout {
 .cloud-name {
   flex: 1;
   color: #2d3748;
+  min-width: 0;
+}
+.trust-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.trust-source {
+  background: #edf2f7;
+  color: #4a5568;
+}
+.trust-necessity {
+  background: #e6fffa;
+  color: #285e61;
+}
+.trust-note {
+  color: #4a5568;
+  font-weight: 600;
 }
 .adj-btn {
   width: 22px;

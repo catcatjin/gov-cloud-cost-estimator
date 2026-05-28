@@ -11,6 +11,7 @@
     <header class="header">
       <span class="header-title">政府資訊系統規模估算工具 v1.0</span>
       <div class="header-pricing">
+        <a class="methodology-link" href="docs/estimation-methodology.md" target="_blank" rel="noopener noreferrer">估算方法與限制</a>
         <span class="pricing-badge"
           :class="pricingSource === 'github-pages' ? 'badge-api' : pricingSource === 'localStorage' ? 'badge-cache' : 'badge-snapshot'">
           <template v-if="pricingSource === 'github-pages'">✓ GitHub Actions 自動維護</template>
@@ -164,7 +165,13 @@
                 </div>
                 <template v-for="item in cloudBreakdown.baseItems" :key="item.id">
                   <div :class="['cloud-item', 'cloud-item-base', { 'cloud-item-selectable': item.type === 'selectable' }]">
-                    <span class="cloud-name">{{ item.label }}</span>
+                    <span class="cloud-name">
+                      {{ item.label }}
+                      <span class="trust-badges">
+                        <span class="trust-badge trust-source">{{ item.sourceLabel }}</span>
+                        <span class="trust-badge trust-necessity">{{ item.necessityLabel }}</span>
+                      </span>
+                    </span>
                     <select v-if="item.type === 'selectable'" class="item-select"
                       :value="serviceSelections[item.key] ?? item.defaultOption"
                       @change="setServiceSelection(item.key, $event.target.value)">
@@ -189,10 +196,14 @@
                   <div v-if="expandedBaseItems[item.id] && item.why" class="base-item-detail">
                     <div class="base-item-row"><span class="base-item-label">為什麼需要</span><span>{{ item.why }}</span></div>
                     <div class="base-item-row"><span class="base-item-label">承擔責任</span><span>{{ item.covers }}</span></div>
+                    <div class="base-item-row"><span class="base-item-label">資料來源</span><span>{{ item.sourceDescription }}</span></div>
+                    <div class="base-item-row"><span class="base-item-label">必要性</span><span>{{ item.necessityDescription }}</span></div>
                     <div class="base-item-row"><span class="base-item-label">可替代情境</span><span>{{ item.canReplace }}</span></div>
                     <div v-if="item.computedNote || item.note" class="base-item-pricing-note">{{ item.computedNote || item.note }}</div>
                   </div>
-                  <div v-else-if="item.computedNote || item.note" class="cloud-pricing-note">{{ item.computedNote || item.note }}</div>
+                  <div v-else-if="item.trustSummary || item.computedNote || item.note" class="cloud-pricing-note">
+                    <span class="trust-note">{{ item.trustSummary }}</span><template v-if="item.computedNote || item.note">｜{{ item.computedNote || item.note }}</template>
+                  </div>
                 </template>
 
                 <!-- ML 工作負載費用 -->
@@ -200,15 +211,26 @@
                   <div class="bundle-section-header">AI/ML 工作負載</div>
                   <template v-for="item in cloudBreakdown.mlItems" :key="item.id">
                     <div class="cloud-item">
-                      <span class="cloud-name">{{ item.label }}</span>
+                      <span class="cloud-name">
+                        {{ item.label }}
+                        <span class="trust-badges">
+                          <span class="trust-badge trust-source">{{ item.sourceLabel }}</span>
+                          <span class="trust-badge trust-necessity">{{ item.necessityLabel }}</span>
+                        </span>
+                      </span>
                       <span class="cloud-cost">{{ item.yearWan.toFixed(1) }} 萬/年</span>
                     </div>
-                    <div v-if="item.type === 'ai-token'" class="cloud-pricing-note formula-note">
-                      月查詢量
-                      <input type="number" class="formula-input"
-                        v-model.number="overrides.aiMonthlyQueries"
-                        :placeholder="derivedAiMonthlyQueries" min="1">
-                      次/月（{{ overrides.aiMonthlyQueries ? '手動設定' : 'Q1/Q2 推算' }}）
+                    <div v-if="item.type === 'ai-token' || item.computedNote || item.note"
+                         class="cloud-pricing-note" :class="{ 'formula-note': item.type === 'ai-token' }">
+                      <span class="trust-note">{{ item.trustSummary }}</span>
+                      <template v-if="item.type === 'ai-token'">
+                        ｜月查詢量
+                        <input type="number" class="formula-input"
+                          v-model.number="overrides.aiMonthlyQueries"
+                          :placeholder="derivedAiMonthlyQueries" min="1">
+                        次/月（{{ overrides.aiMonthlyQueries ? '手動設定' : 'Q1/Q2 推算' }}）
+                      </template>
+                      <template v-else-if="item.computedNote || item.note">｜{{ item.computedNote || item.note }}</template>
                     </div>
                   </template>
                 </template>
@@ -237,7 +259,13 @@
                           <input type="checkbox" :checked="svc.svcChecked" @change="toggleService(bundle.id, svc.id)"
                             :aria-label="svc.label">
                         </label>
-                        <span class="cloud-name">{{ svc.label }}</span>
+                        <span class="cloud-name">
+                          {{ svc.label }}
+                          <span class="trust-badges">
+                            <span class="trust-badge trust-source">{{ svc.sourceLabel }}</span>
+                            <span class="trust-badge trust-necessity">{{ svc.necessityLabel }}</span>
+                          </span>
+                        </span>
                         <select v-if="svc.type === 'selectable'" class="item-select"
                           :value="serviceSelections[svc.key] ?? svc.defaultOption"
                           :disabled="!svc.svcChecked"
@@ -255,7 +283,9 @@
                         <span v-else class="cloud-count-fixed">× {{ svc.instances }}</span>
                         <span class="cloud-cost">{{ svc.yearWan.toFixed(1) }} 萬/年</span>
                       </div>
-                      <div v-if="svc.computedNote || svc.note" class="cloud-pricing-note cloud-svc-note">{{ svc.computedNote || svc.note }}</div>
+                      <div v-if="svc.trustSummary || svc.computedNote || svc.note" class="cloud-pricing-note cloud-svc-note">
+                        <span class="trust-note">{{ svc.trustSummary }}</span><template v-if="svc.computedNote || svc.note">｜{{ svc.computedNote || svc.note }}</template>
+                      </div>
                     </template>
                   </div>
                 </div>
