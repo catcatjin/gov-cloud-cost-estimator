@@ -49,6 +49,75 @@ const TIER_DEFAULTS = {
 const AI_QUERY_MAP_Q1 = { a: 1000, b: 5000, c: 50000, d: 200000, e: 2000000, f: 10000000 }
 const AI_QUERY_MAP_Q2 = { a: 833,  b: 4167,  c: 41667,  d: 416667,  e: 833333  }
 
+const TRUST_SOURCE_TYPES = {
+  officialRate: {
+    label: '官方費率',
+    description: '以 Azure Retail Prices API 或 prices.json 快照中的官方零售費率為主；無法載入時使用項目內備援快照值。',
+  },
+  usageFormula: {
+    label: '官方費率 × 估算用量',
+    description: '單價取自 Azure Retail Prices API 或 prices.json 快照，再乘以本工具預設用量；實際費用會隨用量變動。',
+  },
+  derivedFromBase: {
+    label: '依基礎規格推算',
+    description: '依目前選擇的基礎平台規格推算，例如高可用第二台 App Service 或資料庫 standby。',
+  },
+  estimate: {
+    label: '估算值',
+    description: '未直接對應單一官方 SKU，採常見架構、固定費與流量假設估算；建議採購前依實際架構確認。',
+  },
+  manualAssumption: {
+    label: '人力/用量假設',
+    description: '依本工具的工程人力、模型訓練或使用量假設估算；使用者可依專案條件覆蓋。',
+  },
+}
+
+const NECESSITY_TYPES = {
+  default: {
+    label: '預設納入',
+    description: '此量級服務通常需要的基礎能力，不限定使用同一 Azure 產品；若已有等效服務可改列替代。',
+  },
+  conditional: {
+    label: '條件納入',
+    description: '依問卷答案、風險等級或架構需求預設勾選；承辦可依實際情況取消或改列既有服務。',
+  },
+  optional: {
+    label: '可取消',
+    description: '屬補強或特定架構需求；若專案範圍不包含該能力，可取消或另行估算。',
+  },
+  required: {
+    label: '通常必要',
+    description: '對該類系統多半屬必要能力；若取消，需確認有替代設計、既有平台或承接責任。',
+  },
+}
+
+function inferTrustMeta(item, context = {}) {
+  const selectedOption = context.selectedOption || null
+  const sourceType = item.sourceType
+    || selectedOption?.sourceType
+    || (item.type === 'dynamic-base' ? 'derivedFromBase'
+      : (item.unitSku || item.type === 'ai-token') ? 'usageFormula'
+        : (item.sku || selectedOption?.sku || item.inputSku || item.outputSku || item.skuByTier) ? 'officialRate'
+          : item.buildOneTimeCost ? 'manualAssumption'
+            : 'estimate')
+  const necessity = item.necessity
+    || (context.section === 'base' ? 'default'
+      : context.section === 'ml' ? 'conditional'
+        : context.bundle?.autoSelect ? 'conditional'
+          : 'optional')
+  const source = TRUST_SOURCE_TYPES[sourceType] || TRUST_SOURCE_TYPES.estimate
+  const need = NECESSITY_TYPES[necessity] || NECESSITY_TYPES.optional
+  return {
+    sourceType,
+    sourceLabel: source.label,
+    sourceDescription: source.description,
+    necessity,
+    necessityLabel: need.label,
+    necessityDescription: item.necessityNote || need.description,
+    trustSummary: `${source.label}；${need.label}`,
+  }
+}
+
 // 雲端服務分區架構：base（固定基礎）、ai（Q8='b' 才顯示）、bundles（可選加購）
 //
 // 計費欄位說明：
@@ -434,5 +503,6 @@ const RETRAINING_MAINT_ADJ = {
 // Node.js 測試用匯出
 if (typeof module !== 'undefined') {
   module.exports = { WEIGHTS, TIER_DEFAULTS, CLOUD_TEMPLATES, AI_QUERY_MAP_Q1, AI_QUERY_MAP_Q2,
+    TRUST_SOURCE_TYPES, NECESSITY_TYPES, inferTrustMeta,
     AI_WORKLOAD_TEMPLATES, INFERENCE_ITEMS, RETRAINING_CLOUD, RETRAINING_MAINT_ADJ }
 }
