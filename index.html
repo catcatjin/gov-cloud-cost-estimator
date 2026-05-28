@@ -201,8 +201,8 @@
                     <div class="base-item-row"><span class="base-item-label">可替代情境</span><span>{{ item.canReplace }}</span></div>
                     <div v-if="item.computedNote || item.note" class="base-item-pricing-note">{{ item.computedNote || item.note }}</div>
                   </div>
-                  <div v-else-if="item.trustSummary || item.computedNote || item.note" class="cloud-pricing-note">
-                    <span class="trust-note">{{ item.trustSummary }}</span><template v-if="item.computedNote || item.note">｜{{ item.computedNote || item.note }}</template>
+                  <div v-else-if="item.computedNote || item.note" class="cloud-pricing-note">
+                    {{ item.computedNote || item.note }}
                   </div>
                 </template>
 
@@ -222,15 +222,14 @@
                     </div>
                     <div v-if="item.type === 'ai-token' || item.computedNote || item.note"
                          class="cloud-pricing-note" :class="{ 'formula-note': item.type === 'ai-token' }">
-                      <span class="trust-note">{{ item.trustSummary }}</span>
                       <template v-if="item.type === 'ai-token'">
-                        ｜月查詢量
+                        月查詢量
                         <input type="number" class="formula-input"
                           v-model.number="overrides.aiMonthlyQueries"
                           :placeholder="derivedAiMonthlyQueries" min="1">
                         次/月（{{ overrides.aiMonthlyQueries ? '手動設定' : 'Q1/Q2 推算' }}）
                       </template>
-                      <template v-else-if="item.computedNote || item.note">｜{{ item.computedNote || item.note }}</template>
+                      <template v-else-if="item.computedNote || item.note">{{ item.computedNote || item.note }}</template>
                     </div>
                   </template>
                 </template>
@@ -283,8 +282,8 @@
                         <span v-else class="cloud-count-fixed">× {{ svc.instances }}</span>
                         <span class="cloud-cost">{{ svc.yearWan.toFixed(1) }} 萬/年</span>
                       </div>
-                      <div v-if="svc.trustSummary || svc.computedNote || svc.note" class="cloud-pricing-note cloud-svc-note">
-                        <span class="trust-note">{{ svc.trustSummary }}</span><template v-if="svc.computedNote || svc.note">｜{{ svc.computedNote || svc.note }}</template>
+                      <div v-if="svc.computedNote || svc.note" class="cloud-pricing-note cloud-svc-note">
+                        {{ svc.computedNote || svc.note }}
                       </div>
                     </template>
                   </div>
